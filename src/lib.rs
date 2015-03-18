@@ -169,10 +169,13 @@ impl<T: Ord> IntervalHeap<T> {
     /// # Examples
     ///
     /// ```rust
+    /// # extern crate "interval-heap" as interval_heap;
+    /// # fn main() {
     /// use interval_heap::IntervalHeap;
     ///
     /// let heap = IntervalHeap::<u32>::new();
     /// assert!(heap.is_empty());
+    /// # }
     /// ```
     pub fn new() -> IntervalHeap<T> { IntervalHeap::with_comparator(natural()) }
 
@@ -184,11 +187,14 @@ impl<T: Ord> IntervalHeap<T> {
     /// # Examples
     ///
     /// ```rust
+    /// # extern crate "interval-heap" as interval_heap;
+    /// # fn main() {
     /// use interval_heap::IntervalHeap;
     ///
     /// let heap = IntervalHeap::<u32>::with_capacity(5);
     /// assert!(heap.is_empty());
     /// assert!(heap.capacity() >= 5);
+    /// # }
     /// ```
     pub fn with_capacity(capacity: usize) -> IntervalHeap<T> {
         IntervalHeap::with_capacity_and_comparator(capacity, natural())
@@ -200,11 +206,14 @@ impl<T: Ord> IntervalHeap<T> {
     /// # Examples
     ///
     /// ```rust
+    /// # extern crate "interval-heap" as interval_heap;
+    /// # fn main() {
     /// use interval_heap::IntervalHeap;
     ///
     /// let heap = IntervalHeap::from_vec(vec![5, 1, 6, 4]);
     /// assert_eq!(heap.len(), 4);
     /// assert_eq!(heap.get_min_max(), Some((&1, &6)));
+    /// # }
     /// ```
     pub fn from_vec(vec: Vec<T>) -> IntervalHeap<T> {
         IntervalHeap::from_vec_and_comparator(vec, natural())
