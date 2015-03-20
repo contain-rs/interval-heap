@@ -10,8 +10,6 @@
 
 //! A double-ended priority queue implemented with an interval heap.
 
-#![feature(core)]
-
 extern crate compare;
 #[cfg(test)] extern crate rand;
 
@@ -355,7 +353,7 @@ impl<T, C: Compare<T>> IntervalHeap<T, C> {
     /// (ascending) order.
     pub fn into_sorted_vec(self) -> Vec<T> {
         let mut vec = self.data;
-        for hsize in range(2, vec.len()).rev() {
+        for hsize in (2..vec.len()).rev() {
             vec.swap(1, hsize);
             update_max(&mut vec[..hsize], &self.cmp);
         }
@@ -462,10 +460,10 @@ mod test {
     fn fuzz_push_into_sorted_vec() {
         let mut rng = thread_rng();
         let mut tmp = Vec::with_capacity(100);
-        for _ in range(0, 100) {
+        for _ in 0..100 {
             tmp.clear();
             let mut ih = IntervalHeap::from_vec(tmp);
-            for _ in range(0, 100) {
+            for _ in 0..100 {
                 ih.push(rng.next_u32());
             }
             tmp = ih.into_sorted_vec();
@@ -479,10 +477,10 @@ mod test {
     fn fuzz_pop_min() {
         let mut rng = thread_rng();
         let mut tmp = Vec::with_capacity(100);
-        for _ in range(0, 100) {
+        for _ in 0..100 {
             tmp.clear();
             let mut ih = IntervalHeap::from_vec(tmp);
-            for _ in range(0, 100) {
+            for _ in 0..100 {
                 ih.push(rng.next_u32());
             }
             let mut tmpx: Option<u32> = None;
@@ -503,10 +501,10 @@ mod test {
     fn fuzz_pop_max() {
         let mut rng = thread_rng();
         let mut tmp = Vec::with_capacity(100);
-        for _ in range(0, 100) {
+        for _ in 0..100 {
             tmp.clear();
             let mut ih = IntervalHeap::from_vec(tmp);
-            for _ in range(0, 100) {
+            for _ in 0..100 {
                 ih.push(rng.next_u32());
             }
             let mut tmpx: Option<u32> = None;
