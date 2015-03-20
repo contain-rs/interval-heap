@@ -145,6 +145,11 @@ fn update_max<T, C: Compare<T>>(v: &mut [T], cmp: &C) {
 /// time, removal takes O(log n) time and accessing minimum and maximum can
 /// be done in constant time. Also, other convenient functions are provided
 /// that handle conversion from and into vectors and allow iteration etc.
+///
+/// It is a logic error for an item to be modified in such a way that the
+/// item's ordering relative to any other item, as determined by the heap's
+/// comparator, changes while it is in the heap.  This is normally only
+/// possible through `Cell`, `RefCell`, global state, I/O, or unsafe code.
 #[derive(Clone)]
 pub struct IntervalHeap<T, C: Compare<T> = Natural<T>> {
     data: Vec<T>,
