@@ -17,6 +17,7 @@ use std::slice;
 use std::default::Default;
 use std::fmt::{self, Debug};
 use std::iter::{self, IntoIterator};
+use std::vec;
 
 use compare::{Compare, Natural, natural};
 
@@ -248,6 +249,9 @@ impl<T, C: Compare<T>> IntervalHeap<T, C> {
         Iter(self.data.iter())
     }
 
+    /// Returns a consuming iterator over the heap in arbitrary order.
+    pub fn into_iter(self) -> IntoIter<T> { IntoIter(self.data.into_iter()) }
+
     /// Returns a reference to the smallest item or None (if empty).
     pub fn get_min(&self) -> Option<&T> {
         debug_assert!(self.is_valid());
@@ -454,6 +458,27 @@ impl<'a, T> DoubleEndedIterator for Iter<'a, T> {
 }
 
 impl<'a, T> ExactSizeIterator for Iter<'a, T> {}
+
+/// A consuming iterator over a heap in arbitrary order.
+pub struct IntoIter<T>(vec::IntoIter<T>);
+
+impl<T> Iterator for IntoIter<T> {
+    type Item = T;
+    fn next(&mut self) -> Option<T> { self.0.next() }
+    fn size_hint(&self) -> (usize, Option<usize>) { self.0.size_hint() }
+}
+
+impl<T> DoubleEndedIterator for IntoIter<T> {
+    fn next_back(&mut self) -> Option<T> { self.0.next_back() }
+}
+
+impl<T> ExactSizeIterator for IntoIter<T> {}
+
+impl<T, C: Compare<T>> IntoIterator for IntervalHeap<T, C> {
+    type Item = T;
+    type IntoIter = IntoIter<T>;
+    fn into_iter(self) -> IntoIter<T> { self.into_iter() }
+}
 
 impl<'a, T, C: Compare<T>> IntoIterator for &'a IntervalHeap<T, C> {
     type Item = &'a T;
