@@ -172,7 +172,7 @@ impl<T: Ord> IntervalHeap<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// # extern crate "interval-heap" as interval_heap;
     /// # fn main() {
     /// use interval_heap::IntervalHeap;
@@ -190,7 +190,7 @@ impl<T: Ord> IntervalHeap<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// # extern crate "interval-heap" as interval_heap;
     /// # fn main() {
     /// use interval_heap::IntervalHeap;
@@ -209,7 +209,7 @@ impl<T: Ord> IntervalHeap<T> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// # extern crate "interval-heap" as interval_heap;
     /// # fn main() {
     /// use interval_heap::IntervalHeap;
