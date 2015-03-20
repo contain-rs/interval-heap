@@ -439,11 +439,21 @@ impl<T, C: Compare<T>> Extend<T> for IntervalHeap<T, C> {
     }
 }
 
+impl<'a, T> Clone for Iter<'a, T> {
+    fn clone(&self) -> Iter<'a, T> { Iter(self.0.clone()) }
+}
+
 impl<'a, T> Iterator for Iter<'a, T> {
     type Item = &'a T;
     #[inline] fn next(&mut self) -> Option<&'a T> { self.0.next() }
     #[inline] fn size_hint(&self) -> (usize, Option<usize>) { self.0.size_hint() }
 }
+
+impl<'a, T> DoubleEndedIterator for Iter<'a, T> {
+    fn next_back(&mut self) -> Option<&'a T> { self.0.next_back() }
+}
+
+impl<'a, T> ExactSizeIterator for Iter<'a, T> {}
 
 impl<'a, T, C: Compare<T>> IntoIterator for &'a IntervalHeap<T, C> {
     type Item = &'a T;
