@@ -607,6 +607,44 @@
 <span id="565">565</span>
 <span id="566">566</span>
 <span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
 </pre><pre class='rust '>
 <span class='comment'>// Copyright 2014 The Rust Project Developers. See the COPYRIGHT</span>
 <span class='comment'>// file at the top-level directory of this distribution and at</span>
@@ -620,8 +658,6 @@
 
 <span class='doccomment'>//! A double-ended priority queue implemented with an interval heap.</span>
 
-<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>core</span>)]</span>
-
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>compare</span>;
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>test</span>)]</span> <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>rand</span>;
 
@@ -629,6 +665,7 @@
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>default</span>::<span class='ident'>Default</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>fmt</span>::{<span class='self'>self</span>, <span class='ident'>Debug</span>};
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>iter</span>::{<span class='self'>self</span>, <span class='ident'>IntoIterator</span>};
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>vec</span>;
 
 <span class='kw'>use</span> <span class='ident'>compare</span>::{<span class='ident'>Compare</span>, <span class='ident'>Natural</span>, <span class='ident'>natural</span>};
 
@@ -751,11 +788,16 @@
 }
 
 <span class='doccomment'>/// An `IntervalHeap` is an implementation of a double-ended priority queue.</span>
-<span class='doccomment'>/// As such, it supports the following operations: `push`, `get_min`,</span>
-<span class='doccomment'>/// `get_max`, `pop_min`, `pop_max` where insertion takes amortized O(log n)</span>
+<span class='doccomment'>/// As such, it supports the following operations: `push`, `min`,</span>
+<span class='doccomment'>/// `max`, `pop_min`, `pop_max` where insertion takes amortized O(log n)</span>
 <span class='doccomment'>/// time, removal takes O(log n) time and accessing minimum and maximum can</span>
 <span class='doccomment'>/// be done in constant time. Also, other convenient functions are provided</span>
 <span class='doccomment'>/// that handle conversion from and into vectors and allow iteration etc.</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// It is a logic error for an item to be modified in such a way that the</span>
+<span class='doccomment'>/// item&#39;s ordering relative to any other item, as determined by the heap&#39;s</span>
+<span class='doccomment'>/// comparator, changes while it is in the heap.  This is normally only</span>
+<span class='doccomment'>/// possible through `Cell`, `RefCell`, global state, I/O, or unsafe code.</span>
 <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Clone</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>IntervalHeap</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>C</span>: <span class='ident'>Compare</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='ident'>Natural</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span> {
     <span class='ident'>data</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>,
@@ -778,7 +820,7 @@
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// # Examples</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// ```rust</span>
+    <span class='doccomment'>/// ```</span>
     <span class='doccomment'>/// # extern crate &quot;interval-heap&quot; as interval_heap;</span>
     <span class='doccomment'>/// # fn main() {</span>
     <span class='doccomment'>/// use interval_heap::IntervalHeap;</span>
@@ -796,7 +838,7 @@
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// # Examples</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// ```rust</span>
+    <span class='doccomment'>/// ```</span>
     <span class='doccomment'>/// # extern crate &quot;interval-heap&quot; as interval_heap;</span>
     <span class='doccomment'>/// # fn main() {</span>
     <span class='doccomment'>/// use interval_heap::IntervalHeap;</span>
@@ -815,14 +857,14 @@
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// # Examples</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// ```rust</span>
+    <span class='doccomment'>/// ```</span>
     <span class='doccomment'>/// # extern crate &quot;interval-heap&quot; as interval_heap;</span>
     <span class='doccomment'>/// # fn main() {</span>
     <span class='doccomment'>/// use interval_heap::IntervalHeap;</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// let heap = IntervalHeap::from_vec(vec![5, 1, 6, 4]);</span>
     <span class='doccomment'>/// assert_eq!(heap.len(), 4);</span>
-    <span class='doccomment'>/// assert_eq!(heap.get_min_max(), Some((&amp;1, &amp;6)));</span>
+    <span class='doccomment'>/// assert_eq!(heap.min_max(), Some((&amp;1, &amp;6)));</span>
     <span class='doccomment'>/// # }</span>
     <span class='doccomment'>/// ```</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>from_vec</span>(<span class='ident'>vec</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='ident'>IntervalHeap</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
@@ -860,8 +902,11 @@
         <span class='ident'>Iter</span>(<span class='self'>self</span>.<span class='ident'>data</span>.<span class='ident'>iter</span>())
     }
 
+    <span class='doccomment'>/// Returns a consuming iterator over the heap in arbitrary order.</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>into_iter</span>(<span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>IntoIter</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> { <span class='ident'>IntoIter</span>(<span class='self'>self</span>.<span class='ident'>data</span>.<span class='ident'>into_iter</span>()) }
+
     <span class='doccomment'>/// Returns a reference to the smallest item or None (if empty).</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>get_min</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>min</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
         <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>is_valid</span>());
         <span class='kw'>match</span> <span class='self'>self</span>.<span class='ident'>data</span>.<span class='ident'>len</span>() {
             <span class='number'>0</span> <span class='op'>=&gt;</span> <span class='prelude-val'>None</span>,
@@ -870,7 +915,7 @@
     }
 
     <span class='doccomment'>/// Returns a reference to the greatest item or None (if empty).</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>get_max</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>max</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
         <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>is_valid</span>());
         <span class='kw'>match</span> <span class='self'>self</span>.<span class='ident'>data</span>.<span class='ident'>len</span>() {
             <span class='number'>0</span> <span class='op'>=&gt;</span> <span class='prelude-val'>None</span>,
@@ -880,7 +925,7 @@
     }
 
     <span class='doccomment'>/// Returns references to the smallest and greatest item or None (if empty).</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>get_min_max</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span>(<span class='kw-2'>&amp;</span><span class='ident'>T</span>, <span class='kw-2'>&amp;</span><span class='ident'>T</span>)<span class='op'>&gt;</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>min_max</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span>(<span class='kw-2'>&amp;</span><span class='ident'>T</span>, <span class='kw-2'>&amp;</span><span class='ident'>T</span>)<span class='op'>&gt;</span> {
         <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>is_valid</span>());
         <span class='kw'>match</span> <span class='self'>self</span>.<span class='ident'>data</span>.<span class='ident'>len</span>() {
             <span class='number'>0</span> <span class='op'>=&gt;</span> <span class='prelude-val'>None</span>,
@@ -965,7 +1010,7 @@
     <span class='doccomment'>/// (ascending) order.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>into_sorted_vec</span>(<span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>vec</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>data</span>;
-        <span class='kw'>for</span> <span class='ident'>hsize</span> <span class='kw'>in</span> <span class='ident'>range</span>(<span class='number'>2</span>, <span class='ident'>vec</span>.<span class='ident'>len</span>()).<span class='ident'>rev</span>() {
+        <span class='kw'>for</span> <span class='ident'>hsize</span> <span class='kw'>in</span> (<span class='number'>2</span>..<span class='ident'>vec</span>.<span class='ident'>len</span>()).<span class='ident'>rev</span>() {
             <span class='ident'>vec</span>.<span class='ident'>swap</span>(<span class='number'>1</span>, <span class='ident'>hsize</span>);
             <span class='ident'>update_max</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>vec</span>[..<span class='ident'>hsize</span>], <span class='kw-2'>&amp;</span><span class='self'>self</span>.<span class='ident'>cmp</span>);
         }
@@ -1051,10 +1096,41 @@
     }
 }
 
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>Clone</span> <span class='kw'>for</span> <span class='ident'>Iter</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>clone</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>Iter</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span> { <span class='ident'>Iter</span>(<span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>clone</span>()) }
+}
+
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>Iterator</span> <span class='kw'>for</span> <span class='ident'>Iter</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span> {
     <span class='kw'>type</span> <span class='ident'>Item</span> <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>T</span>;
     <span class='attribute'>#[<span class='ident'>inline</span>]</span> <span class='kw'>fn</span> <span class='ident'>next</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>T</span><span class='op'>&gt;</span> { <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>next</span>() }
     <span class='attribute'>#[<span class='ident'>inline</span>]</span> <span class='kw'>fn</span> <span class='ident'>size_hint</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> (<span class='ident'>usize</span>, <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span>) { <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>size_hint</span>() }
+}
+
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>DoubleEndedIterator</span> <span class='kw'>for</span> <span class='ident'>Iter</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>next_back</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>T</span><span class='op'>&gt;</span> { <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>next_back</span>() }
+}
+
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>ExactSizeIterator</span> <span class='kw'>for</span> <span class='ident'>Iter</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span> {}
+
+<span class='doccomment'>/// A consuming iterator over a heap in arbitrary order.</span>
+<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>IntoIter</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>(<span class='ident'>vec</span>::<span class='ident'>IntoIter</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>);
+
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>Iterator</span> <span class='kw'>for</span> <span class='ident'>IntoIter</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
+    <span class='kw'>type</span> <span class='ident'>Item</span> <span class='op'>=</span> <span class='ident'>T</span>;
+    <span class='kw'>fn</span> <span class='ident'>next</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> { <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>next</span>() }
+    <span class='kw'>fn</span> <span class='ident'>size_hint</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> (<span class='ident'>usize</span>, <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span>) { <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>size_hint</span>() }
+}
+
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>DoubleEndedIterator</span> <span class='kw'>for</span> <span class='ident'>IntoIter</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>next_back</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> { <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>next_back</span>() }
+}
+
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>ExactSizeIterator</span> <span class='kw'>for</span> <span class='ident'>IntoIter</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {}
+
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>C</span>: <span class='ident'>Compare</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span> <span class='ident'>IntoIterator</span> <span class='kw'>for</span> <span class='ident'>IntervalHeap</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>C</span><span class='op'>&gt;</span> {
+    <span class='kw'>type</span> <span class='ident'>Item</span> <span class='op'>=</span> <span class='ident'>T</span>;
+    <span class='kw'>type</span> <span class='ident'>IntoIter</span> <span class='op'>=</span> <span class='ident'>IntoIter</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>;
+    <span class='kw'>fn</span> <span class='ident'>into_iter</span>(<span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>IntoIter</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> { <span class='self'>self</span>.<span class='ident'>into_iter</span>() }
 }
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>, <span class='ident'>C</span>: <span class='ident'>Compare</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span> <span class='ident'>IntoIterator</span> <span class='kw'>for</span> <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>IntervalHeap</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>C</span><span class='op'>&gt;</span> {
@@ -1072,10 +1148,10 @@
     <span class='kw'>fn</span> <span class='ident'>fuzz_push_into_sorted_vec</span>() {
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>rng</span> <span class='op'>=</span> <span class='ident'>thread_rng</span>();
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>tmp</span> <span class='op'>=</span> <span class='ident'>Vec</span>::<span class='ident'>with_capacity</span>(<span class='number'>100</span>);
-        <span class='kw'>for</span> _ <span class='kw'>in</span> <span class='ident'>range</span>(<span class='number'>0</span>, <span class='number'>100</span>) {
+        <span class='kw'>for</span> _ <span class='kw'>in</span> <span class='number'>0</span>..<span class='number'>100</span> {
             <span class='ident'>tmp</span>.<span class='ident'>clear</span>();
             <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>ih</span> <span class='op'>=</span> <span class='ident'>IntervalHeap</span>::<span class='ident'>from_vec</span>(<span class='ident'>tmp</span>);
-            <span class='kw'>for</span> _ <span class='kw'>in</span> <span class='ident'>range</span>(<span class='number'>0</span>, <span class='number'>100</span>) {
+            <span class='kw'>for</span> _ <span class='kw'>in</span> <span class='number'>0</span>..<span class='number'>100</span> {
                 <span class='ident'>ih</span>.<span class='ident'>push</span>(<span class='ident'>rng</span>.<span class='ident'>next_u32</span>());
             }
             <span class='ident'>tmp</span> <span class='op'>=</span> <span class='ident'>ih</span>.<span class='ident'>into_sorted_vec</span>();
@@ -1089,10 +1165,10 @@
     <span class='kw'>fn</span> <span class='ident'>fuzz_pop_min</span>() {
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>rng</span> <span class='op'>=</span> <span class='ident'>thread_rng</span>();
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>tmp</span> <span class='op'>=</span> <span class='ident'>Vec</span>::<span class='ident'>with_capacity</span>(<span class='number'>100</span>);
-        <span class='kw'>for</span> _ <span class='kw'>in</span> <span class='ident'>range</span>(<span class='number'>0</span>, <span class='number'>100</span>) {
+        <span class='kw'>for</span> _ <span class='kw'>in</span> <span class='number'>0</span>..<span class='number'>100</span> {
             <span class='ident'>tmp</span>.<span class='ident'>clear</span>();
             <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>ih</span> <span class='op'>=</span> <span class='ident'>IntervalHeap</span>::<span class='ident'>from_vec</span>(<span class='ident'>tmp</span>);
-            <span class='kw'>for</span> _ <span class='kw'>in</span> <span class='ident'>range</span>(<span class='number'>0</span>, <span class='number'>100</span>) {
+            <span class='kw'>for</span> _ <span class='kw'>in</span> <span class='number'>0</span>..<span class='number'>100</span> {
                 <span class='ident'>ih</span>.<span class='ident'>push</span>(<span class='ident'>rng</span>.<span class='ident'>next_u32</span>());
             }
             <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>tmpx</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>u32</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='prelude-val'>None</span>;
@@ -1113,10 +1189,10 @@
     <span class='kw'>fn</span> <span class='ident'>fuzz_pop_max</span>() {
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>rng</span> <span class='op'>=</span> <span class='ident'>thread_rng</span>();
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>tmp</span> <span class='op'>=</span> <span class='ident'>Vec</span>::<span class='ident'>with_capacity</span>(<span class='number'>100</span>);
-        <span class='kw'>for</span> _ <span class='kw'>in</span> <span class='ident'>range</span>(<span class='number'>0</span>, <span class='number'>100</span>) {
+        <span class='kw'>for</span> _ <span class='kw'>in</span> <span class='number'>0</span>..<span class='number'>100</span> {
             <span class='ident'>tmp</span>.<span class='ident'>clear</span>();
             <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>ih</span> <span class='op'>=</span> <span class='ident'>IntervalHeap</span>::<span class='ident'>from_vec</span>(<span class='ident'>tmp</span>);
-            <span class='kw'>for</span> _ <span class='kw'>in</span> <span class='ident'>range</span>(<span class='number'>0</span>, <span class='number'>100</span>) {
+            <span class='kw'>for</span> _ <span class='kw'>in</span> <span class='number'>0</span>..<span class='number'>100</span> {
                 <span class='ident'>ih</span>.<span class='ident'>push</span>(<span class='ident'>rng</span>.<span class='ident'>next_u32</span>());
             }
             <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>tmpx</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>u32</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='prelude-val'>None</span>;
@@ -1136,16 +1212,16 @@
     <span class='attribute'>#[<span class='ident'>test</span>]</span>
     <span class='kw'>fn</span> <span class='ident'>test_from_vec</span>() {
         <span class='kw'>let</span> <span class='ident'>heap</span> <span class='op'>=</span> <span class='ident'>IntervalHeap</span>::<span class='op'>&lt;</span><span class='ident'>i32</span><span class='op'>&gt;</span>::<span class='ident'>from_vec</span>(<span class='macro'>vec</span><span class='macro'>!</span>[]);
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>heap</span>.<span class='ident'>get_min_max</span>(), <span class='prelude-val'>None</span>);
+        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>heap</span>.<span class='ident'>min_max</span>(), <span class='prelude-val'>None</span>);
 
         <span class='kw'>let</span> <span class='ident'>heap</span> <span class='op'>=</span> <span class='ident'>IntervalHeap</span>::<span class='ident'>from_vec</span>(<span class='macro'>vec</span><span class='macro'>!</span>[<span class='number'>2</span>]);
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>heap</span>.<span class='ident'>get_min_max</span>(), <span class='prelude-val'>Some</span>((<span class='kw-2'>&amp;</span><span class='number'>2</span>, <span class='kw-2'>&amp;</span><span class='number'>2</span>)));
+        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>heap</span>.<span class='ident'>min_max</span>(), <span class='prelude-val'>Some</span>((<span class='kw-2'>&amp;</span><span class='number'>2</span>, <span class='kw-2'>&amp;</span><span class='number'>2</span>)));
 
         <span class='kw'>let</span> <span class='ident'>heap</span> <span class='op'>=</span> <span class='ident'>IntervalHeap</span>::<span class='ident'>from_vec</span>(<span class='macro'>vec</span><span class='macro'>!</span>[<span class='number'>2</span>, <span class='number'>1</span>]);
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>heap</span>.<span class='ident'>get_min_max</span>(), <span class='prelude-val'>Some</span>((<span class='kw-2'>&amp;</span><span class='number'>1</span>, <span class='kw-2'>&amp;</span><span class='number'>2</span>)));
+        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>heap</span>.<span class='ident'>min_max</span>(), <span class='prelude-val'>Some</span>((<span class='kw-2'>&amp;</span><span class='number'>1</span>, <span class='kw-2'>&amp;</span><span class='number'>2</span>)));
 
         <span class='kw'>let</span> <span class='ident'>heap</span> <span class='op'>=</span> <span class='ident'>IntervalHeap</span>::<span class='ident'>from_vec</span>(<span class='macro'>vec</span><span class='macro'>!</span>[<span class='number'>2</span>, <span class='number'>1</span>, <span class='number'>3</span>]);
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>heap</span>.<span class='ident'>get_min_max</span>(), <span class='prelude-val'>Some</span>((<span class='kw-2'>&amp;</span><span class='number'>1</span>, <span class='kw-2'>&amp;</span><span class='number'>3</span>)));
+        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>heap</span>.<span class='ident'>min_max</span>(), <span class='prelude-val'>Some</span>((<span class='kw-2'>&amp;</span><span class='number'>1</span>, <span class='kw-2'>&amp;</span><span class='number'>3</span>)));
     }
 
     <span class='attribute'>#[<span class='ident'>test</span>]</span>

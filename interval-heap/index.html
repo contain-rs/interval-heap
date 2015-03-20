@@ -43,7 +43,7 @@
     <section id='main' class="content mod">
 <h1 class='fqn'><span class='in-band'>Crate <a class='mod' href=''>interval-heap</a><wbr></span><span class='out-of-band'><a href='stability.html'>[stability]</a> <span id='render-detail'>
             <a id="collapse-all" href="#">[-]</a>&nbsp;<a id="expand-all" href="#">[+]</a>
-        </span><a id='src-0' href='../src/interval-heap/lib.rs.html#11-567'>[src]</a></span></h1>
+        </span><a id='src-0' href='../src/interval-heap/lib.rs.html#11-605'>[src]</a></span></h1>
 <div class='docblock'><p>A double-ended priority queue implemented with an interval heap.</p>
 </div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
@@ -51,11 +51,18 @@
                         <td><a class='stability Unmarked' title='No stability level'></a><a class='struct' href='struct.IntervalHeap.html'
                                title='interval-heap::IntervalHeap'>IntervalHeap</a></td>
                         <td class='docblock short'><p>An <code>IntervalHeap</code> is an implementation of a double-ended priority queue.
-As such, it supports the following operations: <code>push</code>, <code>get_min</code>,
-<code>get_max</code>, <code>pop_min</code>, <code>pop_max</code> where insertion takes amortized O(log n)
+As such, it supports the following operations: <code>push</code>, <code>min</code>,
+<code>max</code>, <code>pop_min</code>, <code>pop_max</code> where insertion takes amortized O(log n)
 time, removal takes O(log n) time and accessing minimum and maximum can
 be done in constant time. Also, other convenient functions are provided
 that handle conversion from and into vectors and allow iteration etc.</p>
+</td>
+                    </tr>
+                
+                    <tr>
+                        <td><a class='stability Unmarked' title='No stability level'></a><a class='struct' href='struct.IntoIter.html'
+                               title='interval-heap::IntoIter'>IntoIter</a></td>
+                        <td class='docblock short'><p>A consuming iterator over a heap in arbitrary order.</p>
 </td>
                     </tr>
                 
