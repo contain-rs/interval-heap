@@ -140,8 +140,8 @@ fn update_max<T, C: Compare<T>>(v: &mut [T], cmp: &C) {
 }
 
 /// An `IntervalHeap` is an implementation of a double-ended priority queue.
-/// As such, it supports the following operations: `push`, `get_min`,
-/// `get_max`, `pop_min`, `pop_max` where insertion takes amortized O(log n)
+/// As such, it supports the following operations: `push`, `min`,
+/// `max`, `pop_min`, `pop_max` where insertion takes amortized O(log n)
 /// time, removal takes O(log n) time and accessing minimum and maximum can
 /// be done in constant time. Also, other convenient functions are provided
 /// that handle conversion from and into vectors and allow iteration etc.
@@ -211,7 +211,7 @@ impl<T: Ord> IntervalHeap<T> {
     ///
     /// let heap = IntervalHeap::from_vec(vec![5, 1, 6, 4]);
     /// assert_eq!(heap.len(), 4);
-    /// assert_eq!(heap.get_min_max(), Some((&1, &6)));
+    /// assert_eq!(heap.min_max(), Some((&1, &6)));
     /// # }
     /// ```
     pub fn from_vec(vec: Vec<T>) -> IntervalHeap<T> {
@@ -253,7 +253,7 @@ impl<T, C: Compare<T>> IntervalHeap<T, C> {
     pub fn into_iter(self) -> IntoIter<T> { IntoIter(self.data.into_iter()) }
 
     /// Returns a reference to the smallest item or None (if empty).
-    pub fn get_min(&self) -> Option<&T> {
+    pub fn min(&self) -> Option<&T> {
         debug_assert!(self.is_valid());
         match self.data.len() {
             0 => None,
@@ -262,7 +262,7 @@ impl<T, C: Compare<T>> IntervalHeap<T, C> {
     }
 
     /// Returns a reference to the greatest item or None (if empty).
-    pub fn get_max(&self) -> Option<&T> {
+    pub fn max(&self) -> Option<&T> {
         debug_assert!(self.is_valid());
         match self.data.len() {
             0 => None,
@@ -272,7 +272,7 @@ impl<T, C: Compare<T>> IntervalHeap<T, C> {
     }
 
     /// Returns references to the smallest and greatest item or None (if empty).
-    pub fn get_min_max(&self) -> Option<(&T, &T)> {
+    pub fn min_max(&self) -> Option<(&T, &T)> {
         debug_assert!(self.is_valid());
         match self.data.len() {
             0 => None,
@@ -559,16 +559,16 @@ mod test {
     #[test]
     fn test_from_vec() {
         let heap = IntervalHeap::<i32>::from_vec(vec![]);
-        assert_eq!(heap.get_min_max(), None);
+        assert_eq!(heap.min_max(), None);
 
         let heap = IntervalHeap::from_vec(vec![2]);
-        assert_eq!(heap.get_min_max(), Some((&2, &2)));
+        assert_eq!(heap.min_max(), Some((&2, &2)));
 
         let heap = IntervalHeap::from_vec(vec![2, 1]);
-        assert_eq!(heap.get_min_max(), Some((&1, &2)));
+        assert_eq!(heap.min_max(), Some((&1, &2)));
 
         let heap = IntervalHeap::from_vec(vec![2, 1, 3]);
-        assert_eq!(heap.get_min_max(), Some((&1, &3)));
+        assert_eq!(heap.min_max(), Some((&1, &3)));
     }
 
     #[test]
