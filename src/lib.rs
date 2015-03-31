@@ -173,13 +173,10 @@ impl<T: Ord> IntervalHeap<T> {
     /// # Examples
     ///
     /// ```
-    /// # extern crate "interval-heap" as interval_heap;
-    /// # fn main() {
     /// use interval_heap::IntervalHeap;
     ///
     /// let heap = IntervalHeap::<u32>::new();
     /// assert!(heap.is_empty());
-    /// # }
     /// ```
     pub fn new() -> IntervalHeap<T> { IntervalHeap::with_comparator(natural()) }
 
@@ -191,14 +188,11 @@ impl<T: Ord> IntervalHeap<T> {
     /// # Examples
     ///
     /// ```
-    /// # extern crate "interval-heap" as interval_heap;
-    /// # fn main() {
     /// use interval_heap::IntervalHeap;
     ///
     /// let heap = IntervalHeap::<u32>::with_capacity(5);
     /// assert!(heap.is_empty());
     /// assert!(heap.capacity() >= 5);
-    /// # }
     /// ```
     pub fn with_capacity(capacity: usize) -> IntervalHeap<T> {
         IntervalHeap::with_capacity_and_comparator(capacity, natural())
@@ -210,14 +204,11 @@ impl<T: Ord> IntervalHeap<T> {
     /// # Examples
     ///
     /// ```
-    /// # extern crate "interval-heap" as interval_heap;
-    /// # fn main() {
     /// use interval_heap::IntervalHeap;
     ///
     /// let heap = IntervalHeap::from_vec(vec![5, 1, 6, 4]);
     /// assert_eq!(heap.len(), 4);
     /// assert_eq!(heap.min_max(), Some((&1, &6)));
-    /// # }
     /// ```
     pub fn from_vec(vec: Vec<T>) -> IntervalHeap<T> {
         IntervalHeap::from_vec_and_comparator(vec, natural())
@@ -323,7 +314,7 @@ impl<T, C: Compare<T>> IntervalHeap<T, C> {
             1...2 => Some(self.data.swap_remove(0)),
             _ => {
                 let res = self.data.swap_remove(0);
-                update_min(self.data.as_mut_slice(), &self.cmp);
+                update_min(&mut self.data, &self.cmp);
                 Some(res)
             }
         };
@@ -338,7 +329,7 @@ impl<T, C: Compare<T>> IntervalHeap<T, C> {
             0...2 => self.data.pop(),
             _ => {
                 let res = self.data.swap_remove(1);
-                update_max(self.data.as_mut_slice(), &self.cmp);
+                update_max(&mut self.data, &self.cmp);
                 Some(res)
             }
         };
@@ -350,7 +341,7 @@ impl<T, C: Compare<T>> IntervalHeap<T, C> {
     pub fn push(&mut self, x: T) {
         debug_assert!(self.is_valid());
         self.data.push(x);
-        interval_heap_push(self.data.as_mut_slice(), &self.cmp);
+        interval_heap_push(&mut self.data, &self.cmp);
         debug_assert!(self.is_valid());
     }
 
@@ -398,7 +389,11 @@ impl<T, C: Compare<T>> IntervalHeap<T, C> {
         let mut nodes = self.data.chunks(2);
 
         match nodes.next() {
-            Some([ref l, ref r]) => self.cmp.compares_le(l, r) && // 2a
+            Some(chunk) if chunk.len() == 2 => {
+                let l = &chunk[0];
+                let r = &chunk[1];
+
+                self.cmp.compares_le(l, r) && // 2a
                 nodes.enumerate().all(|(i, node)| {
                     let p = i & !1;
                     let l = &node[0];
@@ -407,7 +402,8 @@ impl<T, C: Compare<T>> IntervalHeap<T, C> {
                     self.cmp.compares_le(l, r) &&              // 2a
                     self.cmp.compares_ge(l, &self.data[p]) &&  // 2b
                     self.cmp.compares_le(r, &self.data[p + 1]) // 2c
-                }),
+                })
+            }
             _ => true, // 1
         }
     }
