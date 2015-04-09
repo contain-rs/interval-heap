@@ -10,7 +10,7 @@ authors = [
 
 repository = "https://github.com/contain-rs/interval-heap"
 homepage = "https://github.com/contain-rs/interval-heap"
-documentation = "https://contain-rs.github.io/interval-heap/interval-heap"
+documentation = "https://contain-rs.github.io/interval-heap/interval_heap"
 keywords = ["data-structures"]
 readme = "README.md"
 
