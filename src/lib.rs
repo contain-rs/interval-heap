@@ -381,6 +381,7 @@ impl<T, C: Compare<T>> IntervalHeap<T, C> {
     }
 
     /// Clears the heap, returning an iterator over the removed items in arbitrary order.
+    #[cfg(feature = "drain")]
     pub fn drain(&mut self) -> Drain<T> {
         Drain(self.data.drain(..))
     }
@@ -490,18 +491,22 @@ impl<T> ExactSizeIterator for IntoIter<T> {}
 /// An iterator that drains an `IntervalHeap` in arbitrary oder.
 ///
 /// Acquire through [`IntervalHeap::drain`](struct.IntervalHeap.html#method.drain).
+#[cfg(feature = "drain")]
 pub struct Drain<'a, T: 'a>(vec::Drain<'a, T>);
 
+#[cfg(feature = "drain")]
 impl<'a, T: 'a> Iterator for Drain<'a, T> {
     type Item = T;
     fn next(&mut self) -> Option<T> { self.0.next() }
     fn size_hint(&self) -> (usize, Option<usize>) { self.0.size_hint() }
 }
 
+#[cfg(feature = "drain")]
 impl<'a, T: 'a> DoubleEndedIterator for Drain<'a, T> {
     fn next_back(&mut self) -> Option<T> { self.0.next_back() }
 }
 
+#[cfg(feature = "drain")]
 impl<'a, T: 'a> ExactSizeIterator for Drain<'a, T> {}
 
 impl<T, C: Compare<T>> IntoIterator for IntervalHeap<T, C> {
