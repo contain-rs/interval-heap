@@ -410,16 +410,7 @@ impl<T, C: Compare<T>> IntervalHeap<T, C> {
 
 impl<T: Debug, C: Compare<T>> Debug for IntervalHeap<T, C> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        try!(write!(f, "{{"));
-
-        let mut it = self.iter();
-
-        if let Some(item) = it.next() {
-            try!(write!(f, "{:?}", item));
-            for item in it { try!(write!(f, ", {:?}", item)); }
-        }
-
-        write!(f, "}}")
+        f.debug_list().entries(self).finish()
     }
 }
 
