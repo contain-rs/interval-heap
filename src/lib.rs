@@ -436,6 +436,12 @@ impl<T, C: Compare<T>> Extend<T> for IntervalHeap<T, C> {
     }
 }
 
+impl<'a, T: 'a + Copy, C: Compare<T>> Extend<&'a T> for IntervalHeap<T, C> {
+    fn extend<I: IntoIterator<Item = &'a T>>(&mut self, iterable: I) {
+        self.extend(iterable.into_iter().map(|&item| item));
+    }
+}
+
 impl<'a, T> Clone for Iter<'a, T> {
     fn clone(&self) -> Iter<'a, T> { Iter(self.0.clone()) }
 }
