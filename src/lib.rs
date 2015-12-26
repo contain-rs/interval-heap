@@ -196,7 +196,9 @@ impl<T: Ord> IntervalHeap<T> {
     pub fn with_capacity(capacity: usize) -> IntervalHeap<T> {
         IntervalHeap::with_capacity_and_comparator(capacity, natural())
     }
+}
 
+impl<T: Ord> From<Vec<T>> for IntervalHeap<T> {
     /// Returns a heap containing all the elements of the given vector and ordered
     /// according to the natural order of its elements.
     ///
@@ -205,11 +207,11 @@ impl<T: Ord> IntervalHeap<T> {
     /// ```
     /// use interval_heap::IntervalHeap;
     ///
-    /// let heap = IntervalHeap::from_vec(vec![5, 1, 6, 4]);
+    /// let heap = IntervalHeap::from(vec![5, 1, 6, 4]);
     /// assert_eq!(heap.len(), 4);
     /// assert_eq!(heap.min_max(), Some((&1, &6)));
     /// ```
-    pub fn from_vec(vec: Vec<T>) -> IntervalHeap<T> {
+    fn from(vec: Vec<T>) -> IntervalHeap<T> {
         IntervalHeap::from_vec_and_comparator(vec, natural())
     }
 }
@@ -488,7 +490,7 @@ mod test {
         let mut tmp = Vec::with_capacity(100);
         for _ in 0..100 {
             tmp.clear();
-            let mut ih = IntervalHeap::from_vec(tmp);
+            let mut ih = IntervalHeap::from(tmp);
             for _ in 0..100 {
                 ih.push(rng.next_u32());
             }
@@ -505,7 +507,7 @@ mod test {
         let mut tmp = Vec::with_capacity(100);
         for _ in 0..100 {
             tmp.clear();
-            let mut ih = IntervalHeap::from_vec(tmp);
+            let mut ih = IntervalHeap::from(tmp);
             for _ in 0..100 {
                 ih.push(rng.next_u32());
             }
@@ -529,7 +531,7 @@ mod test {
         let mut tmp = Vec::with_capacity(100);
         for _ in 0..100 {
             tmp.clear();
-            let mut ih = IntervalHeap::from_vec(tmp);
+            let mut ih = IntervalHeap::from(tmp);
             for _ in 0..100 {
                 ih.push(rng.next_u32());
             }
@@ -549,16 +551,16 @@ mod test {
 
     #[test]
     fn test_from_vec() {
-        let heap = IntervalHeap::<i32>::from_vec(vec![]);
+        let heap = IntervalHeap::<i32>::from(vec![]);
         assert_eq!(heap.min_max(), None);
 
-        let heap = IntervalHeap::from_vec(vec![2]);
+        let heap = IntervalHeap::from(vec![2]);
         assert_eq!(heap.min_max(), Some((&2, &2)));
 
-        let heap = IntervalHeap::from_vec(vec![2, 1]);
+        let heap = IntervalHeap::from(vec![2, 1]);
         assert_eq!(heap.min_max(), Some((&1, &2)));
 
-        let heap = IntervalHeap::from_vec(vec![2, 1, 3]);
+        let heap = IntervalHeap::from(vec![2, 1, 3]);
         assert_eq!(heap.min_max(), Some((&1, &3)));
     }
 
