@@ -373,6 +373,13 @@ impl<T, C: Compare<T>> IntervalHeap<T, C> {
         self.data.clear();
     }
 
+    /// Clears the heap, returning an iterator over the removed items.
+    ///
+    /// The items are removed in arbitrary order.
+    pub fn drain(&mut self) -> Drain<T> {
+        Drain(self.data.drain(..))
+    }
+
     /// Checks if the heap is valid.
     ///
     /// The heap is valid if:
@@ -469,6 +476,21 @@ impl<T> DoubleEndedIterator for IntoIter<T> {
 }
 
 impl<T> ExactSizeIterator for IntoIter<T> {}
+
+/// An iterator that drains an `IntervalHeap`.
+pub struct Drain<'a, T: 'a>(vec::Drain<'a, T>);
+
+impl<'a, T: 'a> Iterator for Drain<'a, T> {
+    type Item = T;
+    fn next(&mut self) -> Option<T> { self.0.next() }
+    fn size_hint(&self) -> (usize, Option<usize>) { self.0.size_hint() }
+}
+
+impl<'a, T: 'a> DoubleEndedIterator for Drain<'a, T> {
+    fn next_back(&mut self) -> Option<T> { self.0.next_back() }
+}
+
+impl<'a, T: 'a> ExactSizeIterator for Drain<'a, T> {}
 
 impl<T, C: Compare<T>> IntoIterator for IntervalHeap<T, C> {
     type Item = T;
