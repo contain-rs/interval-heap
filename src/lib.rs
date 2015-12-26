@@ -1,4 +1,4 @@
-// Copyright 2014 The Rust Project Developers. See the COPYRIGHT
+// Copyright 2015 The Rust Project Developers. See the COPYRIGHT
 // file at the top-level directory of this distribution and at
 // http://rust-lang.org/COPYRIGHT.
 //
@@ -9,13 +9,22 @@
 // except according to those terms.
 
 //! A double-ended priority queue implemented with an interval heap.
+//!
+//! An `IntervalHeap` can be used wherever a [`BinaryHeap`][bh] can, but has the ability to
+//! efficiently access the heap's smallest item and accepts custom comparators. If you only need
+//! access to either the smallest item or the greatest item, `BinaryHeap` is more efficient.
+//!
+//! Insertion has amortized `O(log n)` time complexity. Popping the smallest or greatest item is
+//! `O(log n)`. Retrieving the smallest or greatest item is `O(1)`.
+//!
+//! [bh]: https://doc.rust-lang.org/stable/std/collections/struct.BinaryHeap.html
 
 extern crate compare;
 #[cfg(test)] extern crate rand;
 
-use std::slice;
 use std::fmt::{self, Debug};
 use std::iter;
+use std::slice;
 use std::vec;
 
 use compare::{Compare, Natural, natural};
@@ -28,7 +37,7 @@ use compare::{Compare, Natural, natural};
 // (3) A child node's interval is completely contained in the parent node's
 //     interval.
 //
-// This implies that the min and max elements are always in the root node.
+// This implies that the min and max items are always in the root node.
 //
 // This interval heap implementation stores its nodes in a linear array
 // using a Vec. Here's an example of the layout of a tree with 13 items
@@ -40,9 +49,9 @@ use compare::{Compare, Natural, natural};
 //    /   \       /    \
 //  (6 7)(8 9)(10 11)(12 --)
 //
-// Even indices are used for the "left" element of a node while odd indices
-// are used for the "right" element of a node. Note: the last node may not
-// have a "right" element.
+// Even indices are used for the "left" item of a node while odd indices
+// are used for the "right" item of a node. Note: the last node may not
+// have a "right" item.
 
 // FIXME: There may be a better algorithm for turning a vector into an
 // interval heap. Right now, this takes O(n log n) time, I think.
@@ -58,8 +67,8 @@ fn parent_left(x: usize) -> usize {
     left((x - 2) / 2)
 }
 
-/// The first `v.len() - 1` elements are considered a valid interval heap
-/// and the last element is to be inserted.
+/// The first `v.len() - 1` items are considered a valid interval heap
+/// and the last item is to be inserted.
 fn interval_heap_push<T, C: Compare<T>>(v: &mut [T], cmp: &C) {
     debug_assert!(v.len() > 0);
     // Start with the last new/modified node and work our way to
@@ -68,7 +77,7 @@ fn interval_heap_push<T, C: Compare<T>>(v: &mut [T], cmp: &C) {
     let mut node_min = left(node_max);
     // The reason for using two variables instead of one is to
     // get around the special case of the last node only containing
-    // one element (node_min == node_max).
+    // one item (node_min == node_max).
     if cmp.compares_gt(&v[node_min], &v[node_max]) { v.swap(node_min, node_max); }
     while !is_root(node_min) {
         let par_min = parent_left(node_min);
@@ -86,7 +95,7 @@ fn interval_heap_push<T, C: Compare<T>>(v: &mut [T], cmp: &C) {
     }
 }
 
-/// The min element in the root node of an otherwise valid interval heap
+/// The min item in the root node of an otherwise valid interval heap
 /// has been been replaced with some other value without violating rule (1)
 /// for the root node. This function restores the interval heap properties.
 fn update_min<T, C: Compare<T>>(v: &mut [T], cmp: &C) {
@@ -94,8 +103,8 @@ fn update_min<T, C: Compare<T>>(v: &mut [T], cmp: &C) {
     debug_assert!(cmp.compares_le(&v[0], &v[1]));
     let mut left = 0;
     loop {
-        let c1 = left * 2 + 2; // index of 1st child's left element
-        let c2 = left * 2 + 4; // index of 2nd child's left element
+        let c1 = left * 2 + 2; // index of 1st child's left item
+        let c2 = left * 2 + 4; // index of 2nd child's left item
         if v.len() <= c1 { return; } // No children. We're done.
         // Pick child with lowest min
         let ch = if v.len() <= c2 || cmp.compares_lt(&v[c1], &v[c2]) { c1 }
@@ -113,7 +122,7 @@ fn update_min<T, C: Compare<T>>(v: &mut [T], cmp: &C) {
     }
 }
 
-/// The max element in the root node of an otherwise valid interval heap
+/// The max item in the root node of an otherwise valid interval heap
 /// has been been replaced with some other value without violating rule (1)
 /// for the root node. This function restores the interval heap properties.
 fn update_max<T, C: Compare<T>>(v: &mut [T], cmp: &C) {
@@ -121,8 +130,8 @@ fn update_max<T, C: Compare<T>>(v: &mut [T], cmp: &C) {
     // Starting at the root, we go down the tree...
     let mut right = 1;
     loop {
-        let c1 = right * 2 + 1; // index of 1st child's right element
-        let c2 = right * 2 + 3; // index of 2nd child's right element
+        let c1 = right * 2 + 1; // index of 1st child's right item
+        let c2 = right * 2 + 3; // index of 2nd child's right item
         if v.len() <= c1 { return; } // No children. We're done.
         // Pick child with greatest max
         let ch = if v.len() <= c2 || cmp.compares_gt(&v[c1], &v[c2]) { c1 }
@@ -138,16 +147,11 @@ fn update_max<T, C: Compare<T>>(v: &mut [T], cmp: &C) {
     }
 }
 
-/// An `IntervalHeap` is an implementation of a double-ended priority queue.
-/// As such, it supports the following operations: `push`, `min`,
-/// `max`, `pop_min`, `pop_max` where insertion takes amortized O(log n)
-/// time, removal takes O(log n) time and accessing minimum and maximum can
-/// be done in constant time. Also, other convenient functions are provided
-/// that handle conversion from and into vectors and allow iteration etc.
+/// A double-ended priority queue implemented with an interval heap.
 ///
 /// It is a logic error for an item to be modified in such a way that the
 /// item's ordering relative to any other item, as determined by the heap's
-/// comparator, changes while it is in the heap.  This is normally only
+/// comparator, changes while it is in the heap. This is normally only
 /// possible through `Cell`, `RefCell`, global state, I/O, or unsafe code.
 #[derive(Clone)]
 pub struct IntervalHeap<T, C: Compare<T> = Natural<T>> {
@@ -156,18 +160,14 @@ pub struct IntervalHeap<T, C: Compare<T> = Natural<T>> {
 }
 
 impl<T, C: Compare<T> + Default> Default for IntervalHeap<T, C> {
-    /// Returns an empty heap ordered according to a default comparator.
     #[inline]
     fn default() -> IntervalHeap<T, C> {
-        IntervalHeap::with_comparator(Default::default())
+        Self::with_comparator(C::default())
     }
 }
 
-/// `IntervalHeap` iterator.
-pub struct Iter<'a, T: 'a>(slice::Iter<'a, T>);
-
 impl<T: Ord> IntervalHeap<T> {
-    /// Returns an empty heap ordered according to the natural order of its elements.
+    /// Returns an empty heap ordered according to the natural order of its items.
     ///
     /// # Examples
     ///
@@ -177,12 +177,12 @@ impl<T: Ord> IntervalHeap<T> {
     /// let heap = IntervalHeap::<u32>::new();
     /// assert!(heap.is_empty());
     /// ```
-    pub fn new() -> IntervalHeap<T> { IntervalHeap::with_comparator(natural()) }
+    pub fn new() -> IntervalHeap<T> { Self::with_comparator(natural()) }
 
     /// Returns an empty heap with the given capacity and ordered according to the
-    /// natural order of its elements.
+    /// natural order of its items.
     ///
-    /// The heap will be able to hold exactly `capacity` elements without reallocating.
+    /// The heap will be able to hold exactly `capacity` items without reallocating.
     ///
     /// # Examples
     ///
@@ -194,13 +194,13 @@ impl<T: Ord> IntervalHeap<T> {
     /// assert!(heap.capacity() >= 5);
     /// ```
     pub fn with_capacity(capacity: usize) -> IntervalHeap<T> {
-        IntervalHeap::with_capacity_and_comparator(capacity, natural())
+        Self::with_capacity_and_comparator(capacity, natural())
     }
 }
 
 impl<T: Ord> From<Vec<T>> for IntervalHeap<T> {
-    /// Returns a heap containing all the elements of the given vector and ordered
-    /// according to the natural order of its elements.
+    /// Returns a heap containing all the items of the given vector and ordered
+    /// according to the natural order of its items.
     ///
     /// # Examples
     ///
@@ -212,7 +212,7 @@ impl<T: Ord> From<Vec<T>> for IntervalHeap<T> {
     /// assert_eq!(heap.min_max(), Some((&1, &6)));
     /// ```
     fn from(vec: Vec<T>) -> IntervalHeap<T> {
-        IntervalHeap::from_vec_and_comparator(vec, natural())
+        Self::from_vec_and_comparator(vec, natural())
     }
 }
 
@@ -228,7 +228,7 @@ impl<T, C: Compare<T>> IntervalHeap<T, C> {
         IntervalHeap { data: Vec::with_capacity(capacity), cmp: cmp }
     }
 
-    /// Returns a heap containing all the elements of the given vector and ordered
+    /// Returns a heap containing all the items of the given vector and ordered
     /// according to the given comparator.
     pub fn from_vec_and_comparator(mut vec: Vec<T>, cmp: C) -> IntervalHeap<T, C> {
         for to in 2 .. vec.len() + 1 {
@@ -239,72 +239,79 @@ impl<T, C: Compare<T>> IntervalHeap<T, C> {
         heap
     }
 
-    /// An iterator visiting all values in underlying vector,
-    /// in arbitrary order.
+    /// Returns an iterator visiting all items in the heap in arbitrary order.
     pub fn iter(&self) -> Iter<T> {
         debug_assert!(self.is_valid());
         Iter(self.data.iter())
     }
 
-    /// Returns a reference to the smallest item or None (if empty).
+    /// Returns a reference to the smallest item in the heap.
+    ///
+    /// Returns `None` if the heap is empty.
     pub fn min(&self) -> Option<&T> {
         debug_assert!(self.is_valid());
         match self.data.len() {
             0 => None,
-            _ => Some(&self.data[0])
+            _ => Some(&self.data[0]),
         }
     }
 
-    /// Returns a reference to the greatest item or None (if empty).
+    /// Returns a reference to the greatest item in the heap.
+    ///
+    /// Returns `None` if the heap is empty.
     pub fn max(&self) -> Option<&T> {
         debug_assert!(self.is_valid());
         match self.data.len() {
             0 => None,
             1 => Some(&self.data[0]),
-            _ => Some(&self.data[1])
+            _ => Some(&self.data[1]),
         }
     }
 
-    /// Returns references to the smallest and greatest item or None (if empty).
+    /// Returns references to the smallest and greatest items in the heap.
+    ///
+    /// Returns `None` if the heap is empty.
     pub fn min_max(&self) -> Option<(&T, &T)> {
         debug_assert!(self.is_valid());
         match self.data.len() {
             0 => None,
-            1 => Some((&self.data[0],&self.data[0])),
-            _ => Some((&self.data[0],&self.data[1]))
+            1 => Some((&self.data[0], &self.data[0])),
+            _ => Some((&self.data[0], &self.data[1])),
         }
     }
 
-    /// Returns the number of items the interval heap could hold
-    /// without reallocation.
+    /// Returns the number of items the heap can hold without reallocation.
     pub fn capacity(&self) -> usize {
         self.data.capacity()
     }
 
-    /// Reserves the minimum capacity for exactly `additional` more elements
-    /// to be inserted in the given `IntervalHeap`. Does nothing if the capacity
-    /// is already sufficient.
+    /// Reserves the minimum capacity for exactly `additional` more items to be inserted into the
+    /// heap.
     ///
-    /// Note that the allocator may give the collection more space than it
+    /// Does nothing if the capacity is already sufficient.
+    ///
+    /// Note that the allocator may give the heap more space than it
     /// requests. Therefore capacity can not be relied upon to be precisely
     /// minimal. Prefer `reserve` if future insertions are expected.
     pub fn reserve_exact(&mut self, additional: usize) {
         self.data.reserve_exact(additional);
     }
 
-    /// Reserves capacity for at least `additional` more elements to be inserted
-    /// in the `IntervalHeap`. The collection may reserve more space to avoid
-    /// frequent reallocations.
+    /// Reserves capacity for at least `additional` more items to be inserted into the heap.
+    ///
+    /// The heap may reserve more space to avoid frequent reallocations.
     pub fn reserve(&mut self, additional: usize) {
         self.data.reserve(additional);
     }
 
-    /// Discards as much additional capacity as possible.
+    /// Discards as much additional capacity from the heap as possible.
     pub fn shrink_to_fit(&mut self) {
         self.data.shrink_to_fit()
     }
 
-    /// Removes the smallest item and returns it, or None if is empty.
+    /// Removes the smallest item from the heap and returns it.
+    ///
+    /// Returns `None` if the heap was empty.
     pub fn pop_min(&mut self) -> Option<T> {
         debug_assert!(self.is_valid());
         let min = match self.data.len() {
@@ -320,7 +327,9 @@ impl<T, C: Compare<T>> IntervalHeap<T, C> {
         min
     }
 
-    /// Removes the greatest item and returns it, or None if is empty.
+    /// Removes the greatest item from the heap and returns it.
+    ///
+    /// Returns `None` if the heap was empty.
     pub fn pop_max(&mut self) -> Option<T> {
         debug_assert!(self.is_valid());
         let max = match self.data.len() {
@@ -335,20 +344,18 @@ impl<T, C: Compare<T>> IntervalHeap<T, C> {
         max
     }
 
-    /// Pushes an item onto the queue.
-    pub fn push(&mut self, x: T) {
+    /// Pushes an item onto the heap.
+    pub fn push(&mut self, item: T) {
         debug_assert!(self.is_valid());
-        self.data.push(x);
+        self.data.push(item);
         interval_heap_push(&mut self.data, &self.cmp);
         debug_assert!(self.is_valid());
     }
 
-    /// Consumes the `IntervalHeap` and returns the underlying vector
-    /// in arbitrary order.
+    /// Consumes the heap and returns its items as a vector in arbitrary order.
     pub fn into_vec(self) -> Vec<T> { self.data }
 
-    /// Consumes the `IntervalHeap` and returns a vector in sorted
-    /// (ascending) order.
+    /// Consumes the heap and returns its items as a vector in sorted (ascending) order.
     pub fn into_sorted_vec(self) -> Vec<T> {
         let mut vec = self.data;
         for hsize in (2..vec.len()).rev() {
@@ -358,24 +365,22 @@ impl<T, C: Compare<T>> IntervalHeap<T, C> {
         vec
     }
 
-    /// Returns the number of items in the interval heap
+    /// Returns the number of items in the heap.
     pub fn len(&self) -> usize {
         self.data.len()
     }
 
-    /// Returns true if the queue contains no items.
+    /// Returns `true` if the heap contains no items.
     pub fn is_empty(&self) -> bool {
         self.data.is_empty()
     }
 
-    /// Drops all items from the queue.
+    /// Removes all items from the heap.
     pub fn clear(&mut self) {
         self.data.clear();
     }
 
-    /// Clears the heap, returning an iterator over the removed items.
-    ///
-    /// The items are removed in arbitrary order.
+    /// Clears the heap, returning an iterator over the removed items in arbitrary order.
     pub fn drain(&mut self) -> Drain<T> {
         Drain(self.data.drain(..))
     }
@@ -384,11 +389,11 @@ impl<T, C: Compare<T>> IntervalHeap<T, C> {
     ///
     /// The heap is valid if:
     ///
-    /// 1. It has fewer than two elements, OR
-    /// 2a. Each node's left element is less than or equal to its right element, AND
-    /// 2b. Each node's left element is greater than or equal to the left element of the
+    /// 1. It has fewer than two items, OR
+    /// 2a. Each node's left item is less than or equal to its right item, AND
+    /// 2b. Each node's left item is greater than or equal to the left item of the
     ///     node's parent, AND
-    /// 2c. Each node's right element is less than or equal to the right element of the
+    /// 2c. Each node's right item is less than or equal to the right item of the
     ///     node's parent
     fn is_valid(&self) -> bool {
         let mut nodes = self.data.chunks(2);
@@ -421,17 +426,14 @@ impl<T: Debug, C: Compare<T>> Debug for IntervalHeap<T, C> {
 }
 
 impl<T, C: Compare<T> + Default> iter::FromIterator<T> for IntervalHeap<T, C> {
-    /// Creates an interval heap with all the items from an iterator
-    fn from_iter<I: IntoIterator<Item=T>>(iter: I) -> IntervalHeap<T, C> {
-        IntervalHeap::from_vec_and_comparator(iter.into_iter().collect(), Default::default())
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> IntervalHeap<T, C> {
+        IntervalHeap::from_vec_and_comparator(iter.into_iter().collect(), C::default())
     }
 }
 
 impl<T, C: Compare<T>> Extend<T> for IntervalHeap<T, C> {
-    /// Extends the interval heap by a new chunk of items given by
-    /// an iterator.
-    fn extend<I: IntoIterator<Item=T>>(&mut self, iterable: I) {
-        let iter = iterable.into_iter();
+    fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
+        let iter = iter.into_iter();
         let (lower, _) = iter.size_hint();
         self.reserve(lower);
         for elem in iter {
@@ -441,10 +443,15 @@ impl<T, C: Compare<T>> Extend<T> for IntervalHeap<T, C> {
 }
 
 impl<'a, T: 'a + Copy, C: Compare<T>> Extend<&'a T> for IntervalHeap<T, C> {
-    fn extend<I: IntoIterator<Item = &'a T>>(&mut self, iterable: I) {
-        self.extend(iterable.into_iter().map(|&item| item));
+    fn extend<I: IntoIterator<Item = &'a T>>(&mut self, iter: I) {
+        self.extend(iter.into_iter().map(|&item| item));
     }
 }
+
+/// An iterator over an `IntervalHeap` in arbitrary order.
+///
+/// Acquire through [`IntervalHeap::iter`](struct.IntervalHeap.html#method.iter).
+pub struct Iter<'a, T: 'a>(slice::Iter<'a, T>);
 
 impl<'a, T> Clone for Iter<'a, T> {
     fn clone(&self) -> Iter<'a, T> { Iter(self.0.clone()) }
@@ -462,7 +469,10 @@ impl<'a, T> DoubleEndedIterator for Iter<'a, T> {
 
 impl<'a, T> ExactSizeIterator for Iter<'a, T> {}
 
-/// A consuming iterator over a heap in arbitrary order.
+/// A consuming iterator over an `IntervalHeap` in arbitrary order.
+///
+/// Acquire through [`IntoIterator::into_iter`](
+/// https://doc.rust-lang.org/stable/std/iter/trait.IntoIterator.html#tymethod.into_iter).
 pub struct IntoIter<T>(vec::IntoIter<T>);
 
 impl<T> Iterator for IntoIter<T> {
@@ -477,7 +487,9 @@ impl<T> DoubleEndedIterator for IntoIter<T> {
 
 impl<T> ExactSizeIterator for IntoIter<T> {}
 
-/// An iterator that drains an `IntervalHeap`.
+/// An iterator that drains an `IntervalHeap` in arbitrary oder.
+///
+/// Acquire through [`IntervalHeap::drain`](struct.IntervalHeap.html#method.drain).
 pub struct Drain<'a, T: 'a>(vec::Drain<'a, T>);
 
 impl<'a, T: 'a> Iterator for Drain<'a, T> {
