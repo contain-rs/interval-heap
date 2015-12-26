@@ -14,9 +14,8 @@ extern crate compare;
 #[cfg(test)] extern crate rand;
 
 use std::slice;
-use std::default::Default;
 use std::fmt::{self, Debug};
-use std::iter::{self, IntoIterator};
+use std::iter;
 use std::vec;
 
 use compare::{Compare, Natural, natural};
