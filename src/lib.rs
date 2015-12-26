@@ -246,9 +246,6 @@ impl<T, C: Compare<T>> IntervalHeap<T, C> {
         Iter(self.data.iter())
     }
 
-    /// Returns a consuming iterator over the heap in arbitrary order.
-    pub fn into_iter(self) -> IntoIter<T> { IntoIter(self.data.into_iter()) }
-
     /// Returns a reference to the smallest item or None (if empty).
     pub fn min(&self) -> Option<&T> {
         debug_assert!(self.is_valid());
@@ -476,7 +473,7 @@ impl<T> ExactSizeIterator for IntoIter<T> {}
 impl<T, C: Compare<T>> IntoIterator for IntervalHeap<T, C> {
     type Item = T;
     type IntoIter = IntoIter<T>;
-    fn into_iter(self) -> IntoIter<T> { self.into_iter() }
+    fn into_iter(self) -> IntoIter<T> { IntoIter(self.data.into_iter()) }
 }
 
 impl<'a, T, C: Compare<T>> IntoIterator for &'a IntervalHeap<T, C> {
