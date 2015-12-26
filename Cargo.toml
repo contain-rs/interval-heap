@@ -15,7 +15,7 @@ keywords = ["data-structures"]
 readme = "README.md"
 
 [dependencies]
-compare = "*"
+compare = "0.0.6"
 
 [dev-dependencies]
-rand = "*"
+rand = "0.3"
