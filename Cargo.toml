@@ -1,10 +1,11 @@
 [package]
 
 name = "interval-heap"
-version = "0.0.4"
+version = "0.0.5"
 license = "MIT/Apache-2.0"
 description = "A double-ended priority queue implemented with an interval heap"
 authors = [
+    "Andrew Paseltiner <apaseltiner@gmail.com>",
     "Sebastian Gesemann <s.gesemann@gmail.com>",
 ]
 
@@ -14,8 +15,11 @@ documentation = "https://contain-rs.github.io/interval-heap/interval_heap"
 keywords = ["data-structures"]
 readme = "README.md"
 
+[features]
+drain = []
+
 [dependencies]
-compare = "*"
+compare = "0.0.6"
 
 [dev-dependencies]
-rand = "*"
+rand = "0.3"
