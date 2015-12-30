@@ -24,17 +24,17 @@
 
     
 
-    <section class="sidebar">
+    <nav class="sidebar">
         
         
-    </section>
+    </nav>
 
     <nav class="sub">
         <form class="search-form js-only">
             <div class="search-container">
                 <input class="search-input" name="search"
                        autocomplete="off"
-                       placeholder="Click or press 'S' to search, '?' for more options..."
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
                        type="search">
             </div>
         </form>
@@ -641,8 +641,42 @@
 <span id="599">599</span>
 <span id="600">600</span>
 <span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
 </pre><pre class='rust '>
-<span class='comment'>// Copyright 2014 The Rust Project Developers. See the COPYRIGHT</span>
+<span class='comment'>// Copyright 2015 The Rust Project Developers. See the COPYRIGHT</span>
 <span class='comment'>// file at the top-level directory of this distribution and at</span>
 <span class='comment'>// http://rust-lang.org/COPYRIGHT.</span>
 <span class='comment'>//</span>
@@ -653,14 +687,22 @@
 <span class='comment'>// except according to those terms.</span>
 
 <span class='doccomment'>//! A double-ended priority queue implemented with an interval heap.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! An `IntervalHeap` can be used wherever a [`BinaryHeap`][bh] can, but has the ability to</span>
+<span class='doccomment'>//! efficiently access the heap&#39;s smallest item and accepts custom comparators. If you only need</span>
+<span class='doccomment'>//! access to either the smallest item or the greatest item, `BinaryHeap` is more efficient.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! Insertion has amortized `O(log n)` time complexity. Popping the smallest or greatest item is</span>
+<span class='doccomment'>//! `O(log n)`. Retrieving the smallest or greatest item is `O(1)`.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! [bh]: https://doc.rust-lang.org/stable/std/collections/struct.BinaryHeap.html</span>
 
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>compare</span>;
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>test</span>)]</span> <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>rand</span>;
 
-<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>slice</span>;
-<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>default</span>::<span class='ident'>Default</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>fmt</span>::{<span class='self'>self</span>, <span class='ident'>Debug</span>};
-<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>iter</span>::{<span class='self'>self</span>, <span class='ident'>IntoIterator</span>};
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>iter</span>;
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>slice</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>vec</span>;
 
 <span class='kw'>use</span> <span class='ident'>compare</span>::{<span class='ident'>Compare</span>, <span class='ident'>Natural</span>, <span class='ident'>natural</span>};
@@ -673,7 +715,7 @@
 <span class='comment'>// (3) A child node&#39;s interval is completely contained in the parent node&#39;s</span>
 <span class='comment'>//     interval.</span>
 <span class='comment'>//</span>
-<span class='comment'>// This implies that the min and max elements are always in the root node.</span>
+<span class='comment'>// This implies that the min and max items are always in the root node.</span>
 <span class='comment'>//</span>
 <span class='comment'>// This interval heap implementation stores its nodes in a linear array</span>
 <span class='comment'>// using a Vec. Here&#39;s an example of the layout of a tree with 13 items</span>
@@ -685,9 +727,9 @@
 <span class='comment'>//    /   \       /    \</span>
 <span class='comment'>//  (6 7)(8 9)(10 11)(12 --)</span>
 <span class='comment'>//</span>
-<span class='comment'>// Even indices are used for the &quot;left&quot; element of a node while odd indices</span>
-<span class='comment'>// are used for the &quot;right&quot; element of a node. Note: the last node may not</span>
-<span class='comment'>// have a &quot;right&quot; element.</span>
+<span class='comment'>// Even indices are used for the &quot;left&quot; item of a node while odd indices</span>
+<span class='comment'>// are used for the &quot;right&quot; item of a node. Note: the last node may not</span>
+<span class='comment'>// have a &quot;right&quot; item.</span>
 
 <span class='comment'>// FIXME: There may be a better algorithm for turning a vector into an</span>
 <span class='comment'>// interval heap. Right now, this takes O(n log n) time, I think.</span>
@@ -703,8 +745,8 @@
     <span class='ident'>left</span>((<span class='ident'>x</span> <span class='op'>-</span> <span class='number'>2</span>) <span class='op'>/</span> <span class='number'>2</span>)
 }
 
-<span class='doccomment'>/// The first `v.len() - 1` elements are considered a valid interval heap</span>
-<span class='doccomment'>/// and the last element is to be inserted.</span>
+<span class='doccomment'>/// The first `v.len() - 1` items are considered a valid interval heap</span>
+<span class='doccomment'>/// and the last item is to be inserted.</span>
 <span class='kw'>fn</span> <span class='ident'>interval_heap_push</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>C</span>: <span class='ident'>Compare</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span>(<span class='ident'>v</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='ident'>T</span>], <span class='ident'>cmp</span>: <span class='kw-2'>&amp;</span><span class='ident'>C</span>) {
     <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='ident'>v</span>.<span class='ident'>len</span>() <span class='op'>&gt;</span> <span class='number'>0</span>);
     <span class='comment'>// Start with the last new/modified node and work our way to</span>
@@ -713,7 +755,7 @@
     <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>node_min</span> <span class='op'>=</span> <span class='ident'>left</span>(<span class='ident'>node_max</span>);
     <span class='comment'>// The reason for using two variables instead of one is to</span>
     <span class='comment'>// get around the special case of the last node only containing</span>
-    <span class='comment'>// one element (node_min == node_max).</span>
+    <span class='comment'>// one item (node_min == node_max).</span>
     <span class='kw'>if</span> <span class='ident'>cmp</span>.<span class='ident'>compares_gt</span>(<span class='kw-2'>&amp;</span><span class='ident'>v</span>[<span class='ident'>node_min</span>], <span class='kw-2'>&amp;</span><span class='ident'>v</span>[<span class='ident'>node_max</span>]) { <span class='ident'>v</span>.<span class='ident'>swap</span>(<span class='ident'>node_min</span>, <span class='ident'>node_max</span>); }
     <span class='kw'>while</span> <span class='op'>!</span><span class='ident'>is_root</span>(<span class='ident'>node_min</span>) {
         <span class='kw'>let</span> <span class='ident'>par_min</span> <span class='op'>=</span> <span class='ident'>parent_left</span>(<span class='ident'>node_min</span>);
@@ -731,7 +773,7 @@
     }
 }
 
-<span class='doccomment'>/// The min element in the root node of an otherwise valid interval heap</span>
+<span class='doccomment'>/// The min item in the root node of an otherwise valid interval heap</span>
 <span class='doccomment'>/// has been been replaced with some other value without violating rule (1)</span>
 <span class='doccomment'>/// for the root node. This function restores the interval heap properties.</span>
 <span class='kw'>fn</span> <span class='ident'>update_min</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>C</span>: <span class='ident'>Compare</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span>(<span class='ident'>v</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='ident'>T</span>], <span class='ident'>cmp</span>: <span class='kw-2'>&amp;</span><span class='ident'>C</span>) {
@@ -739,8 +781,8 @@
     <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='ident'>cmp</span>.<span class='ident'>compares_le</span>(<span class='kw-2'>&amp;</span><span class='ident'>v</span>[<span class='number'>0</span>], <span class='kw-2'>&amp;</span><span class='ident'>v</span>[<span class='number'>1</span>]));
     <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>left</span> <span class='op'>=</span> <span class='number'>0</span>;
     <span class='kw'>loop</span> {
-        <span class='kw'>let</span> <span class='ident'>c1</span> <span class='op'>=</span> <span class='ident'>left</span> <span class='op'>*</span> <span class='number'>2</span> <span class='op'>+</span> <span class='number'>2</span>; <span class='comment'>// index of 1st child&#39;s left element</span>
-        <span class='kw'>let</span> <span class='ident'>c2</span> <span class='op'>=</span> <span class='ident'>left</span> <span class='op'>*</span> <span class='number'>2</span> <span class='op'>+</span> <span class='number'>4</span>; <span class='comment'>// index of 2nd child&#39;s left element</span>
+        <span class='kw'>let</span> <span class='ident'>c1</span> <span class='op'>=</span> <span class='ident'>left</span> <span class='op'>*</span> <span class='number'>2</span> <span class='op'>+</span> <span class='number'>2</span>; <span class='comment'>// index of 1st child&#39;s left item</span>
+        <span class='kw'>let</span> <span class='ident'>c2</span> <span class='op'>=</span> <span class='ident'>left</span> <span class='op'>*</span> <span class='number'>2</span> <span class='op'>+</span> <span class='number'>4</span>; <span class='comment'>// index of 2nd child&#39;s left item</span>
         <span class='kw'>if</span> <span class='ident'>v</span>.<span class='ident'>len</span>() <span class='op'>&lt;=</span> <span class='ident'>c1</span> { <span class='kw'>return</span>; } <span class='comment'>// No children. We&#39;re done.</span>
         <span class='comment'>// Pick child with lowest min</span>
         <span class='kw'>let</span> <span class='ident'>ch</span> <span class='op'>=</span> <span class='kw'>if</span> <span class='ident'>v</span>.<span class='ident'>len</span>() <span class='op'>&lt;=</span> <span class='ident'>c2</span> <span class='op'>||</span> <span class='ident'>cmp</span>.<span class='ident'>compares_lt</span>(<span class='kw-2'>&amp;</span><span class='ident'>v</span>[<span class='ident'>c1</span>], <span class='kw-2'>&amp;</span><span class='ident'>v</span>[<span class='ident'>c2</span>]) { <span class='ident'>c1</span> }
@@ -758,7 +800,7 @@
     }
 }
 
-<span class='doccomment'>/// The max element in the root node of an otherwise valid interval heap</span>
+<span class='doccomment'>/// The max item in the root node of an otherwise valid interval heap</span>
 <span class='doccomment'>/// has been been replaced with some other value without violating rule (1)</span>
 <span class='doccomment'>/// for the root node. This function restores the interval heap properties.</span>
 <span class='kw'>fn</span> <span class='ident'>update_max</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>C</span>: <span class='ident'>Compare</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span>(<span class='ident'>v</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='ident'>T</span>], <span class='ident'>cmp</span>: <span class='kw-2'>&amp;</span><span class='ident'>C</span>) {
@@ -766,8 +808,8 @@
     <span class='comment'>// Starting at the root, we go down the tree...</span>
     <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>right</span> <span class='op'>=</span> <span class='number'>1</span>;
     <span class='kw'>loop</span> {
-        <span class='kw'>let</span> <span class='ident'>c1</span> <span class='op'>=</span> <span class='ident'>right</span> <span class='op'>*</span> <span class='number'>2</span> <span class='op'>+</span> <span class='number'>1</span>; <span class='comment'>// index of 1st child&#39;s right element</span>
-        <span class='kw'>let</span> <span class='ident'>c2</span> <span class='op'>=</span> <span class='ident'>right</span> <span class='op'>*</span> <span class='number'>2</span> <span class='op'>+</span> <span class='number'>3</span>; <span class='comment'>// index of 2nd child&#39;s right element</span>
+        <span class='kw'>let</span> <span class='ident'>c1</span> <span class='op'>=</span> <span class='ident'>right</span> <span class='op'>*</span> <span class='number'>2</span> <span class='op'>+</span> <span class='number'>1</span>; <span class='comment'>// index of 1st child&#39;s right item</span>
+        <span class='kw'>let</span> <span class='ident'>c2</span> <span class='op'>=</span> <span class='ident'>right</span> <span class='op'>*</span> <span class='number'>2</span> <span class='op'>+</span> <span class='number'>3</span>; <span class='comment'>// index of 2nd child&#39;s right item</span>
         <span class='kw'>if</span> <span class='ident'>v</span>.<span class='ident'>len</span>() <span class='op'>&lt;=</span> <span class='ident'>c1</span> { <span class='kw'>return</span>; } <span class='comment'>// No children. We&#39;re done.</span>
         <span class='comment'>// Pick child with greatest max</span>
         <span class='kw'>let</span> <span class='ident'>ch</span> <span class='op'>=</span> <span class='kw'>if</span> <span class='ident'>v</span>.<span class='ident'>len</span>() <span class='op'>&lt;=</span> <span class='ident'>c2</span> <span class='op'>||</span> <span class='ident'>cmp</span>.<span class='ident'>compares_gt</span>(<span class='kw-2'>&amp;</span><span class='ident'>v</span>[<span class='ident'>c1</span>], <span class='kw-2'>&amp;</span><span class='ident'>v</span>[<span class='ident'>c2</span>]) { <span class='ident'>c1</span> }
@@ -783,16 +825,11 @@
     }
 }
 
-<span class='doccomment'>/// An `IntervalHeap` is an implementation of a double-ended priority queue.</span>
-<span class='doccomment'>/// As such, it supports the following operations: `push`, `min`,</span>
-<span class='doccomment'>/// `max`, `pop_min`, `pop_max` where insertion takes amortized O(log n)</span>
-<span class='doccomment'>/// time, removal takes O(log n) time and accessing minimum and maximum can</span>
-<span class='doccomment'>/// be done in constant time. Also, other convenient functions are provided</span>
-<span class='doccomment'>/// that handle conversion from and into vectors and allow iteration etc.</span>
+<span class='doccomment'>/// A double-ended priority queue implemented with an interval heap.</span>
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// It is a logic error for an item to be modified in such a way that the</span>
 <span class='doccomment'>/// item&#39;s ordering relative to any other item, as determined by the heap&#39;s</span>
-<span class='doccomment'>/// comparator, changes while it is in the heap.  This is normally only</span>
+<span class='doccomment'>/// comparator, changes while it is in the heap. This is normally only</span>
 <span class='doccomment'>/// possible through `Cell`, `RefCell`, global state, I/O, or unsafe code.</span>
 <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Clone</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>IntervalHeap</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>C</span>: <span class='ident'>Compare</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='ident'>Natural</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span> {
@@ -801,18 +838,14 @@
 }
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>C</span>: <span class='ident'>Compare</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='op'>+</span> <span class='ident'>Default</span><span class='op'>&gt;</span> <span class='ident'>Default</span> <span class='kw'>for</span> <span class='ident'>IntervalHeap</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>C</span><span class='op'>&gt;</span> {
-    <span class='doccomment'>/// Returns an empty heap ordered according to a default comparator.</span>
     <span class='attribute'>#[<span class='ident'>inline</span>]</span>
     <span class='kw'>fn</span> <span class='ident'>default</span>() <span class='op'>-&gt;</span> <span class='ident'>IntervalHeap</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>C</span><span class='op'>&gt;</span> {
-        <span class='ident'>IntervalHeap</span>::<span class='ident'>with_comparator</span>(<span class='ident'>Default</span>::<span class='ident'>default</span>())
+        <span class='ident'>Self</span>::<span class='ident'>with_comparator</span>(<span class='ident'>C</span>::<span class='ident'>default</span>())
     }
 }
 
-<span class='doccomment'>/// `IntervalHeap` iterator.</span>
-<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Iter</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>: <span class='lifetime'>&#39;a</span><span class='op'>&gt;</span>(<span class='ident'>slice</span>::<span class='ident'>Iter</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span>);
-
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span>: <span class='ident'>Ord</span><span class='op'>&gt;</span> <span class='ident'>IntervalHeap</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-    <span class='doccomment'>/// Returns an empty heap ordered according to the natural order of its elements.</span>
+    <span class='doccomment'>/// Returns an empty heap ordered according to the natural order of its items.</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// # Examples</span>
     <span class='doccomment'>///</span>
@@ -822,12 +855,12 @@
     <span class='doccomment'>/// let heap = IntervalHeap::&lt;u32&gt;::new();</span>
     <span class='doccomment'>/// assert!(heap.is_empty());</span>
     <span class='doccomment'>/// ```</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>() <span class='op'>-&gt;</span> <span class='ident'>IntervalHeap</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> { <span class='ident'>IntervalHeap</span>::<span class='ident'>with_comparator</span>(<span class='ident'>natural</span>()) }
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>() <span class='op'>-&gt;</span> <span class='ident'>IntervalHeap</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> { <span class='ident'>Self</span>::<span class='ident'>with_comparator</span>(<span class='ident'>natural</span>()) }
 
     <span class='doccomment'>/// Returns an empty heap with the given capacity and ordered according to the</span>
-    <span class='doccomment'>/// natural order of its elements.</span>
+    <span class='doccomment'>/// natural order of its items.</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// The heap will be able to hold exactly `capacity` elements without reallocating.</span>
+    <span class='doccomment'>/// The heap will be able to hold exactly `capacity` items without reallocating.</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// # Examples</span>
     <span class='doccomment'>///</span>
@@ -839,23 +872,25 @@
     <span class='doccomment'>/// assert!(heap.capacity() &gt;= 5);</span>
     <span class='doccomment'>/// ```</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>with_capacity</span>(<span class='ident'>capacity</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='ident'>IntervalHeap</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-        <span class='ident'>IntervalHeap</span>::<span class='ident'>with_capacity_and_comparator</span>(<span class='ident'>capacity</span>, <span class='ident'>natural</span>())
+        <span class='ident'>Self</span>::<span class='ident'>with_capacity_and_comparator</span>(<span class='ident'>capacity</span>, <span class='ident'>natural</span>())
     }
+}
 
-    <span class='doccomment'>/// Returns a heap containing all the elements of the given vector and ordered</span>
-    <span class='doccomment'>/// according to the natural order of its elements.</span>
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span>: <span class='ident'>Ord</span><span class='op'>&gt;</span> <span class='ident'>From</span><span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span> <span class='kw'>for</span> <span class='ident'>IntervalHeap</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
+    <span class='doccomment'>/// Returns a heap containing all the items of the given vector and ordered</span>
+    <span class='doccomment'>/// according to the natural order of its items.</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// # Examples</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// ```</span>
     <span class='doccomment'>/// use interval_heap::IntervalHeap;</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// let heap = IntervalHeap::from_vec(vec![5, 1, 6, 4]);</span>
+    <span class='doccomment'>/// let heap = IntervalHeap::from(vec![5, 1, 6, 4]);</span>
     <span class='doccomment'>/// assert_eq!(heap.len(), 4);</span>
     <span class='doccomment'>/// assert_eq!(heap.min_max(), Some((&amp;1, &amp;6)));</span>
     <span class='doccomment'>/// ```</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>from_vec</span>(<span class='ident'>vec</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='ident'>IntervalHeap</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-        <span class='ident'>IntervalHeap</span>::<span class='ident'>from_vec_and_comparator</span>(<span class='ident'>vec</span>, <span class='ident'>natural</span>())
+    <span class='kw'>fn</span> <span class='ident'>from</span>(<span class='ident'>vec</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='ident'>IntervalHeap</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
+        <span class='ident'>Self</span>::<span class='ident'>from_vec_and_comparator</span>(<span class='ident'>vec</span>, <span class='ident'>natural</span>())
     }
 }
 
@@ -871,7 +906,7 @@
         <span class='ident'>IntervalHeap</span> { <span class='ident'>data</span>: <span class='ident'>Vec</span>::<span class='ident'>with_capacity</span>(<span class='ident'>capacity</span>), <span class='ident'>cmp</span>: <span class='ident'>cmp</span> }
     }
 
-    <span class='doccomment'>/// Returns a heap containing all the elements of the given vector and ordered</span>
+    <span class='doccomment'>/// Returns a heap containing all the items of the given vector and ordered</span>
     <span class='doccomment'>/// according to the given comparator.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>from_vec_and_comparator</span>(<span class='kw-2'>mut</span> <span class='ident'>vec</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>, <span class='ident'>cmp</span>: <span class='ident'>C</span>) <span class='op'>-&gt;</span> <span class='ident'>IntervalHeap</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>C</span><span class='op'>&gt;</span> {
         <span class='kw'>for</span> <span class='ident'>to</span> <span class='kw'>in</span> <span class='number'>2</span> .. <span class='ident'>vec</span>.<span class='ident'>len</span>() <span class='op'>+</span> <span class='number'>1</span> {
@@ -882,75 +917,79 @@
         <span class='ident'>heap</span>
     }
 
-    <span class='doccomment'>/// An iterator visiting all values in underlying vector,</span>
-    <span class='doccomment'>/// in arbitrary order.</span>
+    <span class='doccomment'>/// Returns an iterator visiting all items in the heap in arbitrary order.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>iter</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>Iter</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
         <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>is_valid</span>());
         <span class='ident'>Iter</span>(<span class='self'>self</span>.<span class='ident'>data</span>.<span class='ident'>iter</span>())
     }
 
-    <span class='doccomment'>/// Returns a consuming iterator over the heap in arbitrary order.</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>into_iter</span>(<span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>IntoIter</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> { <span class='ident'>IntoIter</span>(<span class='self'>self</span>.<span class='ident'>data</span>.<span class='ident'>into_iter</span>()) }
-
-    <span class='doccomment'>/// Returns a reference to the smallest item or None (if empty).</span>
+    <span class='doccomment'>/// Returns a reference to the smallest item in the heap.</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// Returns `None` if the heap is empty.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>min</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
         <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>is_valid</span>());
         <span class='kw'>match</span> <span class='self'>self</span>.<span class='ident'>data</span>.<span class='ident'>len</span>() {
             <span class='number'>0</span> <span class='op'>=&gt;</span> <span class='prelude-val'>None</span>,
-            _ <span class='op'>=&gt;</span> <span class='prelude-val'>Some</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>.<span class='ident'>data</span>[<span class='number'>0</span>])
+            _ <span class='op'>=&gt;</span> <span class='prelude-val'>Some</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>.<span class='ident'>data</span>[<span class='number'>0</span>]),
         }
     }
 
-    <span class='doccomment'>/// Returns a reference to the greatest item or None (if empty).</span>
+    <span class='doccomment'>/// Returns a reference to the greatest item in the heap.</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// Returns `None` if the heap is empty.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>max</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
         <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>is_valid</span>());
         <span class='kw'>match</span> <span class='self'>self</span>.<span class='ident'>data</span>.<span class='ident'>len</span>() {
             <span class='number'>0</span> <span class='op'>=&gt;</span> <span class='prelude-val'>None</span>,
             <span class='number'>1</span> <span class='op'>=&gt;</span> <span class='prelude-val'>Some</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>.<span class='ident'>data</span>[<span class='number'>0</span>]),
-            _ <span class='op'>=&gt;</span> <span class='prelude-val'>Some</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>.<span class='ident'>data</span>[<span class='number'>1</span>])
+            _ <span class='op'>=&gt;</span> <span class='prelude-val'>Some</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>.<span class='ident'>data</span>[<span class='number'>1</span>]),
         }
     }
 
-    <span class='doccomment'>/// Returns references to the smallest and greatest item or None (if empty).</span>
+    <span class='doccomment'>/// Returns references to the smallest and greatest items in the heap.</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// Returns `None` if the heap is empty.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>min_max</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span>(<span class='kw-2'>&amp;</span><span class='ident'>T</span>, <span class='kw-2'>&amp;</span><span class='ident'>T</span>)<span class='op'>&gt;</span> {
         <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>is_valid</span>());
         <span class='kw'>match</span> <span class='self'>self</span>.<span class='ident'>data</span>.<span class='ident'>len</span>() {
             <span class='number'>0</span> <span class='op'>=&gt;</span> <span class='prelude-val'>None</span>,
-            <span class='number'>1</span> <span class='op'>=&gt;</span> <span class='prelude-val'>Some</span>((<span class='kw-2'>&amp;</span><span class='self'>self</span>.<span class='ident'>data</span>[<span class='number'>0</span>],<span class='kw-2'>&amp;</span><span class='self'>self</span>.<span class='ident'>data</span>[<span class='number'>0</span>])),
-            _ <span class='op'>=&gt;</span> <span class='prelude-val'>Some</span>((<span class='kw-2'>&amp;</span><span class='self'>self</span>.<span class='ident'>data</span>[<span class='number'>0</span>],<span class='kw-2'>&amp;</span><span class='self'>self</span>.<span class='ident'>data</span>[<span class='number'>1</span>]))
+            <span class='number'>1</span> <span class='op'>=&gt;</span> <span class='prelude-val'>Some</span>((<span class='kw-2'>&amp;</span><span class='self'>self</span>.<span class='ident'>data</span>[<span class='number'>0</span>], <span class='kw-2'>&amp;</span><span class='self'>self</span>.<span class='ident'>data</span>[<span class='number'>0</span>])),
+            _ <span class='op'>=&gt;</span> <span class='prelude-val'>Some</span>((<span class='kw-2'>&amp;</span><span class='self'>self</span>.<span class='ident'>data</span>[<span class='number'>0</span>], <span class='kw-2'>&amp;</span><span class='self'>self</span>.<span class='ident'>data</span>[<span class='number'>1</span>])),
         }
     }
 
-    <span class='doccomment'>/// Returns the number of items the interval heap could hold</span>
-    <span class='doccomment'>/// without reallocation.</span>
+    <span class='doccomment'>/// Returns the number of items the heap can hold without reallocation.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>capacity</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>usize</span> {
         <span class='self'>self</span>.<span class='ident'>data</span>.<span class='ident'>capacity</span>()
     }
 
-    <span class='doccomment'>/// Reserves the minimum capacity for exactly `additional` more elements</span>
-    <span class='doccomment'>/// to be inserted in the given `IntervalHeap`. Does nothing if the capacity</span>
-    <span class='doccomment'>/// is already sufficient.</span>
+    <span class='doccomment'>/// Reserves the minimum capacity for exactly `additional` more items to be inserted into the</span>
+    <span class='doccomment'>/// heap.</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// Note that the allocator may give the collection more space than it</span>
+    <span class='doccomment'>/// Does nothing if the capacity is already sufficient.</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// Note that the allocator may give the heap more space than it</span>
     <span class='doccomment'>/// requests. Therefore capacity can not be relied upon to be precisely</span>
     <span class='doccomment'>/// minimal. Prefer `reserve` if future insertions are expected.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>reserve_exact</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>additional</span>: <span class='ident'>usize</span>) {
         <span class='self'>self</span>.<span class='ident'>data</span>.<span class='ident'>reserve_exact</span>(<span class='ident'>additional</span>);
     }
 
-    <span class='doccomment'>/// Reserves capacity for at least `additional` more elements to be inserted</span>
-    <span class='doccomment'>/// in the `IntervalHeap`. The collection may reserve more space to avoid</span>
-    <span class='doccomment'>/// frequent reallocations.</span>
+    <span class='doccomment'>/// Reserves capacity for at least `additional` more items to be inserted into the heap.</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// The heap may reserve more space to avoid frequent reallocations.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>reserve</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>additional</span>: <span class='ident'>usize</span>) {
         <span class='self'>self</span>.<span class='ident'>data</span>.<span class='ident'>reserve</span>(<span class='ident'>additional</span>);
     }
 
-    <span class='doccomment'>/// Discards as much additional capacity as possible.</span>
+    <span class='doccomment'>/// Discards as much additional capacity from the heap as possible.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>shrink_to_fit</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) {
         <span class='self'>self</span>.<span class='ident'>data</span>.<span class='ident'>shrink_to_fit</span>()
     }
 
-    <span class='doccomment'>/// Removes the smallest item and returns it, or None if is empty.</span>
+    <span class='doccomment'>/// Removes the smallest item from the heap and returns it.</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// Returns `None` if the heap was empty.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>pop_min</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
         <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>is_valid</span>());
         <span class='kw'>let</span> <span class='ident'>min</span> <span class='op'>=</span> <span class='kw'>match</span> <span class='self'>self</span>.<span class='ident'>data</span>.<span class='ident'>len</span>() {
@@ -966,7 +1005,9 @@
         <span class='ident'>min</span>
     }
 
-    <span class='doccomment'>/// Removes the greatest item and returns it, or None if is empty.</span>
+    <span class='doccomment'>/// Removes the greatest item from the heap and returns it.</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// Returns `None` if the heap was empty.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>pop_max</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
         <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>is_valid</span>());
         <span class='kw'>let</span> <span class='ident'>max</span> <span class='op'>=</span> <span class='kw'>match</span> <span class='self'>self</span>.<span class='ident'>data</span>.<span class='ident'>len</span>() {
@@ -981,20 +1022,18 @@
         <span class='ident'>max</span>
     }
 
-    <span class='doccomment'>/// Pushes an item onto the queue.</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>push</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>x</span>: <span class='ident'>T</span>) {
+    <span class='doccomment'>/// Pushes an item onto the heap.</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>push</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>item</span>: <span class='ident'>T</span>) {
         <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>is_valid</span>());
-        <span class='self'>self</span>.<span class='ident'>data</span>.<span class='ident'>push</span>(<span class='ident'>x</span>);
+        <span class='self'>self</span>.<span class='ident'>data</span>.<span class='ident'>push</span>(<span class='ident'>item</span>);
         <span class='ident'>interval_heap_push</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>.<span class='ident'>data</span>, <span class='kw-2'>&amp;</span><span class='self'>self</span>.<span class='ident'>cmp</span>);
         <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>is_valid</span>());
     }
 
-    <span class='doccomment'>/// Consumes the `IntervalHeap` and returns the underlying vector</span>
-    <span class='doccomment'>/// in arbitrary order.</span>
+    <span class='doccomment'>/// Consumes the heap and returns its items as a vector in arbitrary order.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>into_vec</span>(<span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> { <span class='self'>self</span>.<span class='ident'>data</span> }
 
-    <span class='doccomment'>/// Consumes the `IntervalHeap` and returns a vector in sorted</span>
-    <span class='doccomment'>/// (ascending) order.</span>
+    <span class='doccomment'>/// Consumes the heap and returns its items as a vector in sorted (ascending) order.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>into_sorted_vec</span>(<span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>vec</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>data</span>;
         <span class='kw'>for</span> <span class='ident'>hsize</span> <span class='kw'>in</span> (<span class='number'>2</span>..<span class='ident'>vec</span>.<span class='ident'>len</span>()).<span class='ident'>rev</span>() {
@@ -1004,30 +1043,36 @@
         <span class='ident'>vec</span>
     }
 
-    <span class='doccomment'>/// Returns the number of items in the interval heap</span>
+    <span class='doccomment'>/// Returns the number of items in the heap.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>len</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>usize</span> {
         <span class='self'>self</span>.<span class='ident'>data</span>.<span class='ident'>len</span>()
     }
 
-    <span class='doccomment'>/// Returns true if the queue contains no items.</span>
+    <span class='doccomment'>/// Returns `true` if the heap contains no items.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>is_empty</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
         <span class='self'>self</span>.<span class='ident'>data</span>.<span class='ident'>is_empty</span>()
     }
 
-    <span class='doccomment'>/// Drops all items from the queue.</span>
+    <span class='doccomment'>/// Removes all items from the heap.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>clear</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) {
         <span class='self'>self</span>.<span class='ident'>data</span>.<span class='ident'>clear</span>();
+    }
+
+    <span class='doccomment'>/// Clears the heap, returning an iterator over the removed items in arbitrary order.</span>
+    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>feature</span> <span class='op'>=</span> <span class='string'>&quot;drain&quot;</span>)]</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>drain</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>Drain</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
+        <span class='ident'>Drain</span>(<span class='self'>self</span>.<span class='ident'>data</span>.<span class='ident'>drain</span>(..))
     }
 
     <span class='doccomment'>/// Checks if the heap is valid.</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// The heap is valid if:</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// 1. It has fewer than two elements, OR</span>
-    <span class='doccomment'>/// 2a. Each node&#39;s left element is less than or equal to its right element, AND</span>
-    <span class='doccomment'>/// 2b. Each node&#39;s left element is greater than or equal to the left element of the</span>
+    <span class='doccomment'>/// 1. It has fewer than two items, OR</span>
+    <span class='doccomment'>/// 2a. Each node&#39;s left item is less than or equal to its right item, AND</span>
+    <span class='doccomment'>/// 2b. Each node&#39;s left item is greater than or equal to the left item of the</span>
     <span class='doccomment'>///     node&#39;s parent, AND</span>
-    <span class='doccomment'>/// 2c. Each node&#39;s right element is less than or equal to the right element of the</span>
+    <span class='doccomment'>/// 2c. Each node&#39;s right item is less than or equal to the right item of the</span>
     <span class='doccomment'>///     node&#39;s parent</span>
     <span class='kw'>fn</span> <span class='ident'>is_valid</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>nodes</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>data</span>.<span class='ident'>chunks</span>(<span class='number'>2</span>);
@@ -1055,31 +1100,19 @@
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span>: <span class='ident'>Debug</span>, <span class='ident'>C</span>: <span class='ident'>Compare</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span> <span class='ident'>Debug</span> <span class='kw'>for</span> <span class='ident'>IntervalHeap</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>C</span><span class='op'>&gt;</span> {
     <span class='kw'>fn</span> <span class='ident'>fmt</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>f</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>fmt</span>::<span class='ident'>Formatter</span>) <span class='op'>-&gt;</span> <span class='ident'>fmt</span>::<span class='prelude-ty'>Result</span> {
-        <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>write</span><span class='macro'>!</span>(<span class='ident'>f</span>, <span class='string'>&quot;{{&quot;</span>));
-
-        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>it</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>iter</span>();
-
-        <span class='kw'>if</span> <span class='kw'>let</span> <span class='prelude-val'>Some</span>(<span class='ident'>item</span>) <span class='op'>=</span> <span class='ident'>it</span>.<span class='ident'>next</span>() {
-            <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>write</span><span class='macro'>!</span>(<span class='ident'>f</span>, <span class='string'>&quot;{:?}&quot;</span>, <span class='ident'>item</span>));
-            <span class='kw'>for</span> <span class='ident'>item</span> <span class='kw'>in</span> <span class='ident'>it</span> { <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>write</span><span class='macro'>!</span>(<span class='ident'>f</span>, <span class='string'>&quot;, {:?}&quot;</span>, <span class='ident'>item</span>)); }
-        }
-
-        <span class='macro'>write</span><span class='macro'>!</span>(<span class='ident'>f</span>, <span class='string'>&quot;}}&quot;</span>)
+        <span class='ident'>f</span>.<span class='ident'>debug_list</span>().<span class='ident'>entries</span>(<span class='self'>self</span>).<span class='ident'>finish</span>()
     }
 }
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>C</span>: <span class='ident'>Compare</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='op'>+</span> <span class='ident'>Default</span><span class='op'>&gt;</span> <span class='ident'>iter</span>::<span class='ident'>FromIterator</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='kw'>for</span> <span class='ident'>IntervalHeap</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>C</span><span class='op'>&gt;</span> {
-    <span class='doccomment'>/// Creates an interval heap with all the items from an iterator</span>
-    <span class='kw'>fn</span> <span class='ident'>from_iter</span><span class='op'>&lt;</span><span class='ident'>I</span>: <span class='ident'>IntoIterator</span><span class='op'>&lt;</span><span class='ident'>Item</span><span class='op'>=</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span>(<span class='ident'>iter</span>: <span class='ident'>I</span>) <span class='op'>-&gt;</span> <span class='ident'>IntervalHeap</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>C</span><span class='op'>&gt;</span> {
-        <span class='ident'>IntervalHeap</span>::<span class='ident'>from_vec_and_comparator</span>(<span class='ident'>iter</span>.<span class='ident'>into_iter</span>().<span class='ident'>collect</span>(), <span class='ident'>Default</span>::<span class='ident'>default</span>())
+    <span class='kw'>fn</span> <span class='ident'>from_iter</span><span class='op'>&lt;</span><span class='ident'>I</span>: <span class='ident'>IntoIterator</span><span class='op'>&lt;</span><span class='ident'>Item</span> <span class='op'>=</span> <span class='ident'>T</span><span class='op'>&gt;&gt;</span>(<span class='ident'>iter</span>: <span class='ident'>I</span>) <span class='op'>-&gt;</span> <span class='ident'>IntervalHeap</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>C</span><span class='op'>&gt;</span> {
+        <span class='ident'>IntervalHeap</span>::<span class='ident'>from_vec_and_comparator</span>(<span class='ident'>iter</span>.<span class='ident'>into_iter</span>().<span class='ident'>collect</span>(), <span class='ident'>C</span>::<span class='ident'>default</span>())
     }
 }
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>C</span>: <span class='ident'>Compare</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span> <span class='ident'>Extend</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='kw'>for</span> <span class='ident'>IntervalHeap</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>C</span><span class='op'>&gt;</span> {
-    <span class='doccomment'>/// Extends the interval heap by a new chunk of items given by</span>
-    <span class='doccomment'>/// an iterator.</span>
-    <span class='kw'>fn</span> <span class='ident'>extend</span><span class='op'>&lt;</span><span class='ident'>I</span>: <span class='ident'>IntoIterator</span><span class='op'>&lt;</span><span class='ident'>Item</span><span class='op'>=</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>iterable</span>: <span class='ident'>I</span>) {
-        <span class='kw'>let</span> <span class='ident'>iter</span> <span class='op'>=</span> <span class='ident'>iterable</span>.<span class='ident'>into_iter</span>();
+    <span class='kw'>fn</span> <span class='ident'>extend</span><span class='op'>&lt;</span><span class='ident'>I</span>: <span class='ident'>IntoIterator</span><span class='op'>&lt;</span><span class='ident'>Item</span> <span class='op'>=</span> <span class='ident'>T</span><span class='op'>&gt;&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>iter</span>: <span class='ident'>I</span>) {
+        <span class='kw'>let</span> <span class='ident'>iter</span> <span class='op'>=</span> <span class='ident'>iter</span>.<span class='ident'>into_iter</span>();
         <span class='kw'>let</span> (<span class='ident'>lower</span>, _) <span class='op'>=</span> <span class='ident'>iter</span>.<span class='ident'>size_hint</span>();
         <span class='self'>self</span>.<span class='ident'>reserve</span>(<span class='ident'>lower</span>);
         <span class='kw'>for</span> <span class='ident'>elem</span> <span class='kw'>in</span> <span class='ident'>iter</span> {
@@ -1087,6 +1120,17 @@
         }
     }
 }
+
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>: <span class='lifetime'>&#39;a</span> <span class='op'>+</span> <span class='ident'>Copy</span>, <span class='ident'>C</span>: <span class='ident'>Compare</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span> <span class='ident'>Extend</span><span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>T</span><span class='op'>&gt;</span> <span class='kw'>for</span> <span class='ident'>IntervalHeap</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>C</span><span class='op'>&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>extend</span><span class='op'>&lt;</span><span class='ident'>I</span>: <span class='ident'>IntoIterator</span><span class='op'>&lt;</span><span class='ident'>Item</span> <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>T</span><span class='op'>&gt;&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>iter</span>: <span class='ident'>I</span>) {
+        <span class='self'>self</span>.<span class='ident'>extend</span>(<span class='ident'>iter</span>.<span class='ident'>into_iter</span>().<span class='ident'>map</span>(<span class='op'>|</span><span class='kw-2'>&amp;</span><span class='ident'>item</span><span class='op'>|</span> <span class='ident'>item</span>));
+    }
+}
+
+<span class='doccomment'>/// An iterator over an `IntervalHeap` in arbitrary order.</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// Acquire through [`IntervalHeap::iter`](struct.IntervalHeap.html#method.iter).</span>
+<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Iter</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>: <span class='lifetime'>&#39;a</span><span class='op'>&gt;</span>(<span class='ident'>slice</span>::<span class='ident'>Iter</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span>);
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>Clone</span> <span class='kw'>for</span> <span class='ident'>Iter</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span> {
     <span class='kw'>fn</span> <span class='ident'>clone</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>Iter</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span> { <span class='ident'>Iter</span>(<span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>clone</span>()) }
@@ -1104,7 +1148,10 @@
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>ExactSizeIterator</span> <span class='kw'>for</span> <span class='ident'>Iter</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span> {}
 
-<span class='doccomment'>/// A consuming iterator over a heap in arbitrary order.</span>
+<span class='doccomment'>/// A consuming iterator over an `IntervalHeap` in arbitrary order.</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// Acquire through [`IntoIterator::into_iter`](</span>
+<span class='doccomment'>/// https://doc.rust-lang.org/stable/std/iter/trait.IntoIterator.html#tymethod.into_iter).</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>IntoIter</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>(<span class='ident'>vec</span>::<span class='ident'>IntoIter</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>);
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>Iterator</span> <span class='kw'>for</span> <span class='ident'>IntoIter</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
@@ -1119,10 +1166,31 @@
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>ExactSizeIterator</span> <span class='kw'>for</span> <span class='ident'>IntoIter</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {}
 
+<span class='doccomment'>/// An iterator that drains an `IntervalHeap` in arbitrary oder.</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// Acquire through [`IntervalHeap::drain`](struct.IntervalHeap.html#method.drain).</span>
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>feature</span> <span class='op'>=</span> <span class='string'>&quot;drain&quot;</span>)]</span>
+<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Drain</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>: <span class='lifetime'>&#39;a</span><span class='op'>&gt;</span>(<span class='ident'>vec</span>::<span class='ident'>Drain</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span>);
+
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>feature</span> <span class='op'>=</span> <span class='string'>&quot;drain&quot;</span>)]</span>
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>: <span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> <span class='ident'>Iterator</span> <span class='kw'>for</span> <span class='ident'>Drain</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span> {
+    <span class='kw'>type</span> <span class='ident'>Item</span> <span class='op'>=</span> <span class='ident'>T</span>;
+    <span class='kw'>fn</span> <span class='ident'>next</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> { <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>next</span>() }
+    <span class='kw'>fn</span> <span class='ident'>size_hint</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> (<span class='ident'>usize</span>, <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span>) { <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>size_hint</span>() }
+}
+
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>feature</span> <span class='op'>=</span> <span class='string'>&quot;drain&quot;</span>)]</span>
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>: <span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> <span class='ident'>DoubleEndedIterator</span> <span class='kw'>for</span> <span class='ident'>Drain</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>next_back</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> { <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>next_back</span>() }
+}
+
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>feature</span> <span class='op'>=</span> <span class='string'>&quot;drain&quot;</span>)]</span>
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>: <span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> <span class='ident'>ExactSizeIterator</span> <span class='kw'>for</span> <span class='ident'>Drain</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span> {}
+
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>C</span>: <span class='ident'>Compare</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span> <span class='ident'>IntoIterator</span> <span class='kw'>for</span> <span class='ident'>IntervalHeap</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>C</span><span class='op'>&gt;</span> {
     <span class='kw'>type</span> <span class='ident'>Item</span> <span class='op'>=</span> <span class='ident'>T</span>;
     <span class='kw'>type</span> <span class='ident'>IntoIter</span> <span class='op'>=</span> <span class='ident'>IntoIter</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>;
-    <span class='kw'>fn</span> <span class='ident'>into_iter</span>(<span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>IntoIter</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> { <span class='self'>self</span>.<span class='ident'>into_iter</span>() }
+    <span class='kw'>fn</span> <span class='ident'>into_iter</span>(<span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>IntoIter</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> { <span class='ident'>IntoIter</span>(<span class='self'>self</span>.<span class='ident'>data</span>.<span class='ident'>into_iter</span>()) }
 }
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>, <span class='ident'>C</span>: <span class='ident'>Compare</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span> <span class='ident'>IntoIterator</span> <span class='kw'>for</span> <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>IntervalHeap</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>C</span><span class='op'>&gt;</span> {
@@ -1142,7 +1210,7 @@
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>tmp</span> <span class='op'>=</span> <span class='ident'>Vec</span>::<span class='ident'>with_capacity</span>(<span class='number'>100</span>);
         <span class='kw'>for</span> _ <span class='kw'>in</span> <span class='number'>0</span>..<span class='number'>100</span> {
             <span class='ident'>tmp</span>.<span class='ident'>clear</span>();
-            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>ih</span> <span class='op'>=</span> <span class='ident'>IntervalHeap</span>::<span class='ident'>from_vec</span>(<span class='ident'>tmp</span>);
+            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>ih</span> <span class='op'>=</span> <span class='ident'>IntervalHeap</span>::<span class='ident'>from</span>(<span class='ident'>tmp</span>);
             <span class='kw'>for</span> _ <span class='kw'>in</span> <span class='number'>0</span>..<span class='number'>100</span> {
                 <span class='ident'>ih</span>.<span class='ident'>push</span>(<span class='ident'>rng</span>.<span class='ident'>next_u32</span>());
             }
@@ -1159,7 +1227,7 @@
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>tmp</span> <span class='op'>=</span> <span class='ident'>Vec</span>::<span class='ident'>with_capacity</span>(<span class='number'>100</span>);
         <span class='kw'>for</span> _ <span class='kw'>in</span> <span class='number'>0</span>..<span class='number'>100</span> {
             <span class='ident'>tmp</span>.<span class='ident'>clear</span>();
-            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>ih</span> <span class='op'>=</span> <span class='ident'>IntervalHeap</span>::<span class='ident'>from_vec</span>(<span class='ident'>tmp</span>);
+            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>ih</span> <span class='op'>=</span> <span class='ident'>IntervalHeap</span>::<span class='ident'>from</span>(<span class='ident'>tmp</span>);
             <span class='kw'>for</span> _ <span class='kw'>in</span> <span class='number'>0</span>..<span class='number'>100</span> {
                 <span class='ident'>ih</span>.<span class='ident'>push</span>(<span class='ident'>rng</span>.<span class='ident'>next_u32</span>());
             }
@@ -1183,7 +1251,7 @@
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>tmp</span> <span class='op'>=</span> <span class='ident'>Vec</span>::<span class='ident'>with_capacity</span>(<span class='number'>100</span>);
         <span class='kw'>for</span> _ <span class='kw'>in</span> <span class='number'>0</span>..<span class='number'>100</span> {
             <span class='ident'>tmp</span>.<span class='ident'>clear</span>();
-            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>ih</span> <span class='op'>=</span> <span class='ident'>IntervalHeap</span>::<span class='ident'>from_vec</span>(<span class='ident'>tmp</span>);
+            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>ih</span> <span class='op'>=</span> <span class='ident'>IntervalHeap</span>::<span class='ident'>from</span>(<span class='ident'>tmp</span>);
             <span class='kw'>for</span> _ <span class='kw'>in</span> <span class='number'>0</span>..<span class='number'>100</span> {
                 <span class='ident'>ih</span>.<span class='ident'>push</span>(<span class='ident'>rng</span>.<span class='ident'>next_u32</span>());
             }
@@ -1203,16 +1271,16 @@
 
     <span class='attribute'>#[<span class='ident'>test</span>]</span>
     <span class='kw'>fn</span> <span class='ident'>test_from_vec</span>() {
-        <span class='kw'>let</span> <span class='ident'>heap</span> <span class='op'>=</span> <span class='ident'>IntervalHeap</span>::<span class='op'>&lt;</span><span class='ident'>i32</span><span class='op'>&gt;</span>::<span class='ident'>from_vec</span>(<span class='macro'>vec</span><span class='macro'>!</span>[]);
+        <span class='kw'>let</span> <span class='ident'>heap</span> <span class='op'>=</span> <span class='ident'>IntervalHeap</span>::<span class='op'>&lt;</span><span class='ident'>i32</span><span class='op'>&gt;</span>::<span class='ident'>from</span>(<span class='macro'>vec</span><span class='macro'>!</span>[]);
         <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>heap</span>.<span class='ident'>min_max</span>(), <span class='prelude-val'>None</span>);
 
-        <span class='kw'>let</span> <span class='ident'>heap</span> <span class='op'>=</span> <span class='ident'>IntervalHeap</span>::<span class='ident'>from_vec</span>(<span class='macro'>vec</span><span class='macro'>!</span>[<span class='number'>2</span>]);
+        <span class='kw'>let</span> <span class='ident'>heap</span> <span class='op'>=</span> <span class='ident'>IntervalHeap</span>::<span class='ident'>from</span>(<span class='macro'>vec</span><span class='macro'>!</span>[<span class='number'>2</span>]);
         <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>heap</span>.<span class='ident'>min_max</span>(), <span class='prelude-val'>Some</span>((<span class='kw-2'>&amp;</span><span class='number'>2</span>, <span class='kw-2'>&amp;</span><span class='number'>2</span>)));
 
-        <span class='kw'>let</span> <span class='ident'>heap</span> <span class='op'>=</span> <span class='ident'>IntervalHeap</span>::<span class='ident'>from_vec</span>(<span class='macro'>vec</span><span class='macro'>!</span>[<span class='number'>2</span>, <span class='number'>1</span>]);
+        <span class='kw'>let</span> <span class='ident'>heap</span> <span class='op'>=</span> <span class='ident'>IntervalHeap</span>::<span class='ident'>from</span>(<span class='macro'>vec</span><span class='macro'>!</span>[<span class='number'>2</span>, <span class='number'>1</span>]);
         <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>heap</span>.<span class='ident'>min_max</span>(), <span class='prelude-val'>Some</span>((<span class='kw-2'>&amp;</span><span class='number'>1</span>, <span class='kw-2'>&amp;</span><span class='number'>2</span>)));
 
-        <span class='kw'>let</span> <span class='ident'>heap</span> <span class='op'>=</span> <span class='ident'>IntervalHeap</span>::<span class='ident'>from_vec</span>(<span class='macro'>vec</span><span class='macro'>!</span>[<span class='number'>2</span>, <span class='number'>1</span>, <span class='number'>3</span>]);
+        <span class='kw'>let</span> <span class='ident'>heap</span> <span class='op'>=</span> <span class='ident'>IntervalHeap</span>::<span class='ident'>from</span>(<span class='macro'>vec</span><span class='macro'>!</span>[<span class='number'>2</span>, <span class='number'>1</span>, <span class='number'>3</span>]);
         <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>heap</span>.<span class='ident'>min_max</span>(), <span class='prelude-val'>Some</span>((<span class='kw-2'>&amp;</span><span class='number'>1</span>, <span class='kw-2'>&amp;</span><span class='number'>3</span>)));
     }
 
@@ -1249,36 +1317,49 @@
 
     <section class="footer"></section>
 
-    <div id="help" class="hidden">
-        <div class="shortcuts">
-            <h1>Keyboard shortcuts</h1>
-            <dl>
-                <dt>?</dt>
-                <dd>Show this help dialog</dd>
-                <dt>S</dt>
-                <dd>Focus the search field</dd>
-                <dt>&larrb;</dt>
-                <dd>Move up in search results</dd>
-                <dt>&rarrb;</dt>
-                <dd>Move down in search results</dd>
-                <dt>&#9166;</dt>
-                <dd>Go to active search result</dd>
-            </dl>
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code>)
+                </p>
+            </div>
         </div>
-        <div class="infos">
-            <h1>Search tricks</h1>
-            <p>
-                Prefix searches with a type followed by a colon (e.g.
-                <code>fn:</code>) to restrict the search to a given type.
-            </p>
-            <p>
-                Accepted types are: <code>fn</code>, <code>mod</code>,
-                <code>struct</code>, <code>enum</code>,
-                <code>trait</code>, <code>typedef</code> (or
-                <code>tdef</code>).
-            </p>
-        </div>
-    </div>
+    </aside>
 
     
 
