@@ -9,6 +9,7 @@
 
     <title>interval_heap - Rust</title>
 
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../main.css">
 
     
@@ -45,7 +46,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/interval_heap/lib.rs.html#11-635' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-0' class='srclink' href='../src/interval_heap/lib.rs.html#11-630' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p>A double-ended priority queue implemented with an interval heap.</p>
 
 <p>An <code>IntervalHeap</code> can be used wherever a <a href="https://doc.rust-lang.org/stable/std/collections/struct.BinaryHeap.html"><code>BinaryHeap</code></a> can, but has the ability to
@@ -56,6 +57,15 @@ access to either the smallest item or the greatest item, <code>BinaryHeap</code>
 <code>O(log n)</code>. Retrieving the smallest or greatest item is <code>O(1)</code>.</p>
 </div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
+                    <tr class=' module-item'>
+                        <td><a class='struct' href='struct.Drain.html'
+                               title='interval_heap::Drain'>Drain</a></td>
+                        <td class='docblock short'>
+                             <p>An iterator that drains an <code>IntervalHeap</code> in arbitrary oder.</p>
+
+                        </td>
+                    </tr>
+                
                     <tr class=' module-item'>
                         <td><a class='struct' href='struct.IntervalHeap.html'
                                title='interval_heap::IntervalHeap'>IntervalHeap</a></td>
@@ -141,6 +151,6 @@ access to either the smallest item or the greatest item, <code>BinaryHeap</code>
     <script src="../jquery.js"></script>
     <script src="../main.js"></script>
     
-    <script async src="../search-index.js"></script>
+    <script defer src="../search-index.js"></script>
 </body>
 </html>
