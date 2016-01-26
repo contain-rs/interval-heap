@@ -15,9 +15,6 @@ documentation = "https://contain-rs.github.io/interval-heap/interval_heap"
 keywords = ["data-structures"]
 readme = "README.md"
 
-[features]
-drain = []
-
 [dependencies]
 compare = "0.0.6"
 
