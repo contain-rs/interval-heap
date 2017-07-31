@@ -26,6 +26,7 @@ use std::fmt::{self, Debug};
 use std::iter;
 use std::slice;
 use std::vec;
+use std::ops::{Deref, DerefMut};
 
 use compare::{Compare, Natural, natural};
 
@@ -256,6 +257,20 @@ impl<T, C: Compare<T>> IntervalHeap<T, C> {
         }
     }
 
+    /// Returns a mut reference to the smallest item in the heap.
+    ///
+    /// Returns `None` if the heap is empty.
+    pub fn min_mut(&mut self) -> Option<MutPeek<T, C>> {
+        debug_assert!(self.is_valid());
+        match self.data.len() {
+            0 => None,
+            _ => Some(MutPeek {
+                heap: self,
+                t: PeekType::Min
+            }),
+        }
+    }
+
     /// Returns a reference to the greatest item in the heap.
     ///
     /// Returns `None` if the heap is empty.
@@ -265,6 +280,20 @@ impl<T, C: Compare<T>> IntervalHeap<T, C> {
             0 => None,
             1 => Some(&self.data[0]),
             _ => Some(&self.data[1]),
+        }
+    }
+    
+    /// Returns a mut reference to the greatest item in the heap.
+    ///
+    /// Returns `None` if the heap is empty.
+    pub fn max_mut(&mut self) -> Option<MutPeek<T, C>> {
+        debug_assert!(self.is_valid());
+        match self.data.len() {
+            0 => None,
+            _ => Some(MutPeek {
+                heap: self,
+                t: PeekType::Max
+            }),
         }
     }
 
@@ -516,6 +545,73 @@ impl<'a, T, C: Compare<T>> IntoIterator for &'a IntervalHeap<T, C> {
     fn into_iter(self) -> Iter<'a, T> { self.iter() }
 }
 
+#[derive(Debug)]
+enum PeekType {
+    Min,
+    Max,
+    Sifted
+}
+
+pub struct MutPeek<'a, T: 'a, C: 'a + Compare<T> = Natural<T>> {
+    heap: &'a mut IntervalHeap<T, C>,
+    t: PeekType,
+}
+
+
+impl<'a, T: 'a, C: Compare<T>> Drop for MutPeek<'a, T, C> {
+    fn drop(&mut self) {
+        // maintain rule (1) in cases where the value has been changed and now violates it
+        if !self.heap.cmp.compares_le(&self.heap.data[0], &self.heap.data[1]) {
+            self.heap.data.swap(0, 1);
+        }
+
+        match self.t {
+            PeekType::Min => update_min(&mut self.heap.data, &self.heap.cmp),
+            PeekType::Max => update_max(&mut self.heap.data, &self.heap.cmp),
+            PeekType::Sifted => {}
+        }
+    }
+}
+
+impl<'a, T: 'a + Copy, C: Compare<T>> Deref for MutPeek<'a, T, C> {
+    type Target = T;
+    fn deref(&self) -> &T {
+        match self.t {
+            PeekType::Min => self.heap.min().unwrap(),
+            PeekType::Max => self.heap.max().unwrap(),
+            PeekType::Sifted => unreachable!("Got here by peeking so shouldn't be possible")
+        }
+    }
+}
+
+impl<'a, T: 'a + Copy, C: Compare<T>> DerefMut for MutPeek<'a, T, C> {
+    fn deref_mut(&mut self) -> &mut T {
+         match self.t {
+            PeekType::Min => &mut self.heap.data[0],
+            PeekType::Max => match self.heap.data.len() {
+                0 => unreachable!("Got here by peeking so shouldn't be possible"),
+                1 => &mut self.heap.data[0],
+                _ => &mut self.heap.data[1],
+            },
+            PeekType::Sifted => unreachable!("Got here by peeking so shouldn't be possible")
+        }
+    }
+}
+
+impl<'a, T: 'a + Copy, C: Compare<T>> MutPeek<'a, T, C> {
+    pub fn pop(mut self) -> T {
+        let value = match self.t {
+            PeekType::Min => self.heap.pop_min().unwrap(),
+            PeekType::Max => self.heap.pop_max().unwrap(),
+            PeekType::Sifted => unreachable!("It should not be posible to pop an already sifted item...")
+        };
+        
+        self.t = PeekType::Sifted;
+        value
+    }
+}
+
+
 #[cfg(test)]
 mod test {
     use rand::{thread_rng, Rng};
@@ -626,5 +722,43 @@ mod test {
         assert!(!new(vec![1, 5, 6]).is_valid());    // violates 2c
         assert!(!new(vec![1, 5, 1, 6]).is_valid()); // violates 2c
         assert!(!new(vec![1, 5, 0, 6]).is_valid()); // violates 2b and 2c
+    }
+
+    #[test]
+    fn test_min_mut() {
+        let mut heap = IntervalHeap::<i32>::from(vec![2, 1, 3]);
+
+        {
+            let mut peek = heap.min_mut().unwrap();
+            *peek = 0;
+        }
+        
+        assert_eq!(heap.min_max(), Some((&0, &3)));
+
+        {
+            heap.min_mut().unwrap().pop();
+        }
+
+        assert_eq!(heap.min_max(), Some((&2, &3)));
+        assert_eq!(heap.len(), 2);
+    }
+    
+    #[test]
+    fn test_max_mut() {
+        let mut heap = IntervalHeap::<i32>::from(vec![2, 1, 3]);
+
+        {
+            let mut peek = heap.max_mut().unwrap();
+            *peek = 6;
+        }
+
+        assert_eq!(heap.min_max(), Some((&1, &6)));
+        
+        {
+            heap.max_mut().unwrap().pop();
+        }
+
+        assert_eq!(heap.min_max(), Some((&1, &2)));
+        assert_eq!(heap.len(), 2);
     }
 }
